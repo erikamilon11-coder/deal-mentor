@@ -379,6 +379,9 @@ export default function LeadDetail() {
                     handleStatusChange("Offer Sent");
                   }
                 }}
+                onOfferAccepted={() => {
+                  handleStatusChange("Under Contract");
+                }}
               />
             </TabsContent>
           </div>
@@ -423,6 +426,9 @@ export default function LeadDetail() {
               lead={lead}
               owners={owners}
               onSaved={() => setShowCalculator(false)}
+              onOfferAccepted={() => {
+                handleStatusChange("Under Contract");
+              }}
             />
           </div>
         </SheetContent>
