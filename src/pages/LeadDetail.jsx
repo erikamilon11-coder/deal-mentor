@@ -101,7 +101,7 @@ export default function LeadDetail() {
     onSuccess: () => navigate(createPageUrl("Dashboard")),
   });
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     const updates = {
       status: newStatus,
       last_activity_date: new Date().toISOString(),
@@ -114,9 +114,55 @@ export default function LeadDetail() {
       "Responded": "Prepare Offer",
       "Talking": "Send Contract",
       "Offer Sent": "Follow Up for Decision",
+      "Under Contract": "Prepare for Closing",
     };
     if (suggestions[newStatus]) {
       updates.next_action_suggestion = suggestions[newStatus];
+    }
+
+    // Auto-create tasks for key status changes
+    if (newStatus === "Offer Sent") {
+      await base44.entities.Task.create({
+        lead_id: leadId,
+        task_type: "Call",
+        due_date: addDays(new Date(), 2).toISOString(),
+        status: "Open",
+        auto_generated: true,
+        description: "Follow up on offer decision",
+      });
+      updates.next_followup_date = addDays(new Date(), 2).toISOString();
+      queryClient.invalidateQueries({ queryKey: ["tasks", leadId] });
+    }
+
+    if (newStatus === "Under Contract") {
+      await base44.entities.Task.bulkCreate([
+        {
+          lead_id: leadId,
+          task_type: "Call",
+          due_date: addDays(new Date(), 1).toISOString(),
+          status: "Open",
+          auto_generated: true,
+          description: "Send contract to title company",
+        },
+        {
+          lead_id: leadId,
+          task_type: "Call",
+          due_date: addDays(new Date(), 3).toISOString(),
+          status: "Open",
+          auto_generated: true,
+          description: "Confirm earnest money deposit",
+        },
+        {
+          lead_id: leadId,
+          task_type: "Follow-up Text",
+          due_date: addDays(new Date(), 7).toISOString(),
+          status: "Open",
+          auto_generated: true,
+          description: "Check inspection period status",
+        },
+      ]);
+      updates.next_followup_date = addDays(new Date(), 1).toISOString();
+      queryClient.invalidateQueries({ queryKey: ["tasks", leadId] });
     }
 
     updateLeadMutation.mutate(updates);
