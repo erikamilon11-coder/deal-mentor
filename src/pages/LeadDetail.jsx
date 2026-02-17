@@ -326,6 +326,8 @@ export default function LeadDetail() {
               <OfferCalculator
                 leadId={leadId}
                 existingOffer={latestOffer}
+                lead={lead}
+                owners={owners}
                 onSaved={() => {
                   if (lead.status === "Responded") {
                     handleStatusChange("Offer Sent");
@@ -372,6 +374,8 @@ export default function LeadDetail() {
             <OfferCalculator
               leadId={leadId}
               existingOffer={latestOffer}
+              lead={lead}
+              owners={owners}
               onSaved={() => setShowCalculator(false)}
             />
           </div>
