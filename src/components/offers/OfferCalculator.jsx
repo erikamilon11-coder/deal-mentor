@@ -2,17 +2,19 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, DollarSign, Save, TrendingDown, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Calculator, DollarSign, Save, TrendingDown, FileText, ChevronDown, ChevronUp, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ContractGenerator from "./ContractGenerator";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, owners }) {
+export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, owners, onOfferAccepted }) {
   const [arv, setArv] = useState(existingOffer?.arv || "");
   const [repairs, setRepairs] = useState(existingOffer?.estimated_repairs || "");
   const [assignmentFee, setAssignmentFee] = useState(existingOffer?.assignment_fee_target || 10000);
   const [offerPrice, setOfferPrice] = useState(existingOffer?.offer_price || "");
   const [showContract, setShowContract] = useState(false);
+  const [offerOutcome, setOfferOutcome] = useState(existingOffer?.outcome || "Pending");
 
   const queryClient = useQueryClient();
 
@@ -144,6 +146,55 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
         <Save className="w-4 h-4 mr-2" />
         {saveMutation.isPending ? "Saving..." : "Save Offer"}
       </Button>
+
+      {existingOffer && (
+        <div className="bg-slate-50 rounded-xl p-4">
+          <Label className="text-slate-700 mb-2 block">Offer Outcome</Label>
+          <Select
+            value={offerOutcome}
+            onValueChange={async (value) => {
+              setOfferOutcome(value);
+              await base44.entities.Offer.update(existingOffer.id, { outcome: value });
+              queryClient.invalidateQueries({ queryKey: ["offers", leadId] });
+              
+              if (value === "Accepted" && onOfferAccepted) {
+                onOfferAccepted();
+                setShowContract(true);
+              }
+            }}
+          >
+            <SelectTrigger className="h-12 rounded-xl">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Pending">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-500" />
+                  Pending
+                </div>
+              </SelectItem>
+              <SelectItem value="Accepted">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-emerald-500" />
+                  Accepted
+                </div>
+              </SelectItem>
+              <SelectItem value="Rejected">
+                <div className="flex items-center gap-2">
+                  <XCircle className="w-4 h-4 text-red-500" />
+                  Rejected
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {offerOutcome === "Accepted" && (
+            <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              Great! Generate a contract below to proceed.
+            </p>
+          )}
+        </div>
+      )}
 
       {(existingOffer || offerPrice) && lead && (
         <>
