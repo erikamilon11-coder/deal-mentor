@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, DollarSign, Save, TrendingDown } from "lucide-react";
+import { Calculator, DollarSign, Save, TrendingDown, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import ContractGenerator from "./ContractGenerator";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-export default function OfferCalculator({ leadId, existingOffer, onSaved }) {
+export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, owners }) {
   const [arv, setArv] = useState(existingOffer?.arv || "");
   const [repairs, setRepairs] = useState(existingOffer?.estimated_repairs || "");
   const [assignmentFee, setAssignmentFee] = useState(existingOffer?.assignment_fee_target || 10000);
   const [offerPrice, setOfferPrice] = useState(existingOffer?.offer_price || "");
+  const [showContract, setShowContract] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -142,6 +144,33 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved }) {
         <Save className="w-4 h-4 mr-2" />
         {saveMutation.isPending ? "Saving..." : "Save Offer"}
       </Button>
+
+      {(existingOffer || offerPrice) && lead && (
+        <>
+          <Button
+            variant="outline"
+            onClick={() => setShowContract(!showContract)}
+            className="w-full h-12 rounded-xl border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Generate Contract
+            {showContract ? (
+              <ChevronUp className="w-4 h-4 ml-2" />
+            ) : (
+              <ChevronDown className="w-4 h-4 ml-2" />
+            )}
+          </Button>
+
+          {showContract && (
+            <ContractGenerator
+              lead={lead}
+              offer={existingOffer || { offer_price: Number(offerPrice), maximum_allowable_offer: mao }}
+              owners={owners}
+              onContractCreated={() => setShowContract(false)}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }
