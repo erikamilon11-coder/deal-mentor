@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Trash2, AlertTriangle, MessageSquare } from "lucide-react";
+import { ArrowLeft, User, Trash2, AlertTriangle, MessageSquare, FileText } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -81,6 +81,28 @@ export default function Settings() {
           </div>
           <div className="p-4">
             <TemplateManager />
+          </div>
+        </div>
+
+        {/* Document Tracker Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              Document Management
+            </h2>
+          </div>
+          <div className="p-4">
+            <Button
+              onClick={() => navigate(createPageUrl("DocumentTracker"))}
+              className="w-full"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              View Document Tracker
+            </Button>
+            <p className="text-xs text-slate-500 mt-2">
+              Monitor contract status and track signatures in real-time
+            </p>
           </div>
         </div>
 
