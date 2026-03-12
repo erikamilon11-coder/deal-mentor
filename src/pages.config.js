@@ -49,26 +49,28 @@
  */
 import AddLead from './pages/AddLead';
 import Buyers from './pages/Buyers';
+import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
 import LeadDetail from './pages/LeadDetail';
 import Leads from './pages/Leads';
 import MapView from './pages/MapView';
 import Settings from './pages/Settings';
-import Campaigns from './pages/Campaigns';
 import Analytics from './pages/Analytics';
+import CalendarView from './pages/CalendarView';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AddLead": AddLead,
     "Buyers": Buyers,
+    "Campaigns": Campaigns,
     "Dashboard": Dashboard,
     "LeadDetail": LeadDetail,
     "Leads": Leads,
     "MapView": MapView,
     "Settings": Settings,
-    "Campaigns": Campaigns,
     "Analytics": Analytics,
+    "CalendarView": CalendarView,
 }
 
 export const pagesConfig = {
