@@ -154,9 +154,9 @@ export default function MarketingContentGenerator({ leadId, lead }) {
             <p className="text-sm font-semibold text-slate-900 mb-3">Social Media Posts</p>
             <Tabs defaultValue="instagram" className="w-full">
               <TabsList className="grid grid-cols-4 w-full">
-                {Object.entries(socialIcons).map(([platform, Icon]) => (
+                {Object.entries(socialIcons).map(([platform, PlatformIcon]) => (
                   <TabsTrigger key={platform} value={platform} className="flex gap-1">
-                    <Icon className="w-4 h-4" />
+                    <PlatformIcon className="w-4 h-4" />
                     <span className="hidden sm:inline text-xs">{platform}</span>
                   </TabsTrigger>
                 ))}
