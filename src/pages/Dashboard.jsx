@@ -16,6 +16,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 import LeadsMapView from "@/components/map/LeadsMapView";
 import BulkLeadImporter from "@/components/dashboard/BulkLeadImporter";
 import TasksWidget from "@/components/dashboard/TasksWidget";
+import TaskManager from "@/components/dashboard/TaskManager";
 import FinancialWidget from "@/components/dashboard/FinancialWidget";
 
 export default function Dashboard() {
