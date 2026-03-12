@@ -4,8 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calculator, DollarSign, Save, TrendingDown, FileText, ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Database } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ContractGenerator from "./ContractGenerator";
 import PropertyDataCard from "@/components/property/PropertyDataCard";
+import CompsManager from "@/components/valuation/CompsManager";
+import ProfitCalculator from "@/components/valuation/ProfitCalculator";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
@@ -17,6 +20,8 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
   const [showContract, setShowContract] = useState(false);
   const [offerOutcome, setOfferOutcome] = useState(existingOffer?.outcome || "Pending");
   const [showPropertyData, setShowPropertyData] = useState(false);
+  const [comps, setComps] = useState([]);
+  const [calculatedMAO, setCalculatedMAO] = useState(0);
 
   const queryClient = useQueryClient();
 
@@ -42,23 +47,38 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
     },
   });
 
-  // Auto-populate ARV from property data if available
+  // Auto-populate ARV from property data or comps
   useEffect(() => {
     if (propertyData?.estimated_value && !arv) {
       setArv(propertyData.estimated_value);
     }
   }, [propertyData]);
 
-  // Calculate MAO: (ARV * 0.70) - Repairs - Assignment Fee
-  const mao = arv && repairs 
-    ? Math.round((Number(arv) * 0.70) - Number(repairs) - Number(assignmentFee))
-    : 0;
+  const handleCompsChange = (updatedComps) => {
+    setComps(updatedComps);
+    if (updatedComps.length > 0 && !arv) {
+      const avgPrice = updatedComps.reduce((sum, comp) => sum + Number(comp.sale_price || 0), 0) / updatedComps.length;
+      setArv(Math.round(avgPrice));
+    }
+  };
+
+  // Use calculated MAO from ProfitCalculator or fall back to simple calculation
+  const mao = calculatedMAO > 0 ? calculatedMAO : (
+    arv && repairs 
+      ? Math.round((Number(arv) * 0.70) - Number(repairs) - Number(assignmentFee))
+      : 0
+  );
 
   useEffect(() => {
     if (mao > 0 && !offerPrice) {
       setOfferPrice(mao);
     }
   }, [mao]);
+
+  const handleMAOChange = (newMAO, newFee) => {
+    setCalculatedMAO(newMAO);
+    setAssignmentFee(newFee);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async (data) => {
@@ -93,7 +113,7 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calculator className="w-5 h-5 text-slate-700" />
-          <h3 className="font-semibold text-slate-900">Offer Calculator</h3>
+          <h3 className="font-semibold text-slate-900">Property Valuation</h3>
         </div>
         <Button
           variant="outline"
@@ -120,6 +140,15 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
           )}
         </Button>
       </div>
+
+      <Tabs defaultValue="quick" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="quick">Quick</TabsTrigger>
+          <TabsTrigger value="comps">Comps</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="quick" className="space-y-4 mt-4">
 
       {/* Property Data Section */}
       {propertyData && (
@@ -236,14 +265,150 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
         )}
       </div>
 
-      <Button
-        onClick={handleSave}
-        disabled={!arv || saveMutation.isPending}
-        className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
-      >
-        <Save className="w-4 h-4 mr-2" />
-        {saveMutation.isPending ? "Saving..." : "Save Offer"}
-      </Button>
+        <Button
+          onClick={handleSave}
+          disabled={!arv || saveMutation.isPending}
+          className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          {saveMutation.isPending ? "Saving..." : "Save Offer"}
+        </Button>
+        </TabsContent>
+
+        <TabsContent value="comps" className="space-y-4 mt-4">
+          <CompsManager onCompsChange={handleCompsChange} />
+
+          {comps.length > 0 && (
+            <>
+              <div>
+                <Label className="text-slate-700">Estimated Repairs</Label>
+                <div className="relative mt-1.5">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    type="number"
+                    value={repairs}
+                    onChange={(e) => setRepairs(e.target.value)}
+                    className="pl-10 h-12 rounded-xl text-lg"
+                    placeholder="30000"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-slate-700">Target Assignment Fee</Label>
+                <div className="relative mt-1.5">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    type="number"
+                    value={assignmentFee}
+                    onChange={(e) => setAssignmentFee(e.target.value)}
+                    className="pl-10 h-12 rounded-xl text-lg"
+                    placeholder="10000"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-5 border border-emerald-100">
+                <div className="flex items-center gap-2 mb-3">
+                  <TrendingDown className="w-5 h-5 text-emerald-600" />
+                  <span className="text-sm font-medium text-emerald-700">Maximum Allowable Offer</span>
+                </div>
+                <p className="text-3xl font-bold text-emerald-900">{formatCurrency(mao)}</p>
+                <p className="text-xs text-emerald-600 mt-1">
+                  (Avg Comps × 70%) - Repairs - Assignment Fee
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-slate-700">Your Offer Price</Label>
+                <div className="relative mt-1.5">
+                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    type="number"
+                    value={offerPrice}
+                    onChange={(e) => setOfferPrice(e.target.value)}
+                    className="pl-10 h-12 rounded-xl text-lg font-semibold"
+                    placeholder="Enter your offer"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSave}
+                disabled={!arv || saveMutation.isPending}
+                className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {saveMutation.isPending ? "Saving..." : "Save Offer"}
+              </Button>
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="advanced" className="space-y-4 mt-4">
+          <div>
+            <Label className="text-slate-700">After Repair Value (ARV)</Label>
+            <div className="relative mt-1.5">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                type="number"
+                value={arv}
+                onChange={(e) => setArv(e.target.value)}
+                className="pl-10 h-12 rounded-xl text-lg"
+                placeholder="200000"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-slate-700">Estimated Repairs</Label>
+            <div className="relative mt-1.5">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                type="number"
+                value={repairs}
+                onChange={(e) => setRepairs(e.target.value)}
+                className="pl-10 h-12 rounded-xl text-lg"
+                placeholder="30000"
+              />
+            </div>
+          </div>
+
+          <ProfitCalculator 
+            arv={arv} 
+            repairs={repairs}
+            onMAOChange={handleMAOChange}
+          />
+
+          <div>
+            <Label className="text-slate-700">Your Offer Price</Label>
+            <div className="relative mt-1.5">
+              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                type="number"
+                value={offerPrice}
+                onChange={(e) => setOfferPrice(e.target.value)}
+                className="pl-10 h-12 rounded-xl text-lg font-semibold"
+                placeholder="Enter your offer"
+              />
+            </div>
+            {offerPrice && mao && Number(offerPrice) > mao && (
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ This is above your MAO by {formatCurrency(Number(offerPrice) - mao)}
+              </p>
+            )}
+          </div>
+
+          <Button
+            onClick={handleSave}
+            disabled={!arv || saveMutation.isPending}
+            className="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {saveMutation.isPending ? "Saving..." : "Save Offer"}
+          </Button>
+        </TabsContent>
+      </Tabs>
 
       {existingOffer && (
         <div className="bg-slate-50 rounded-xl p-4">
