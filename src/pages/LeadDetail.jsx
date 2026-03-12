@@ -425,6 +425,7 @@ export default function LeadDetail() {
                 leadId={leadId}
                 owners={owners}
                 phones={phones}
+                lead={lead}
               />
             </TabsContent>
 
