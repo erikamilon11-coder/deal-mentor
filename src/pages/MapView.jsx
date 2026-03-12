@@ -143,7 +143,6 @@ export default function MapView() {
       {/* Header */}
       <div
         className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
-        style={{ paddingTop: "env(safe-area-inset-top, 1rem)" }}
       >
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">

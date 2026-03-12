@@ -16,7 +16,8 @@ import {
   Download,
   Mail,
   Calendar,
-  User
+  User,
+  ArrowLeft
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -208,13 +209,23 @@ export default function DocumentTracker() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-            Document Tracker
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
-            Monitor contract status and track signatures in real-time
-          </p>
+        <div className="mb-6 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate(createPageUrl("Settings"))}
+            className="rounded-xl"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              Document Tracker
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Monitor contract status and track signatures in real-time
+            </p>
+          </div>
         </div>
 
         {/* Stats Cards */}

@@ -65,7 +65,7 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
         <div 
           ref={scrollContainerRef}
           className={isMapPage ? "h-screen" : "h-screen overflow-y-auto"}
