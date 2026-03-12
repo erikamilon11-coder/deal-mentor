@@ -22,6 +22,7 @@ import {
   Clock,
   ClipboardCheck,
   Mail,
+  FileText,
 } from "lucide-react";
 import { addDays } from "date-fns";
 
@@ -34,6 +35,7 @@ import LeadForm from "@/components/leads/LeadForm";
 import ActivityFeed from "@/components/leads/ActivityFeed";
 import ClosingChecklist from "@/components/contracts/ClosingChecklist";
 import DripCampaignManager from "@/components/email/DripCampaignManager";
+import DocumentManager from "@/components/documents/DocumentManager";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
