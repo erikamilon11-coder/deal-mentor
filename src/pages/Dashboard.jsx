@@ -17,6 +17,7 @@ import LeadsMapView from "@/components/map/LeadsMapView";
 import BulkLeadImporter from "@/components/dashboard/BulkLeadImporter";
 import TasksWidget from "@/components/dashboard/TasksWidget";
 import TaskManager from "@/components/dashboard/TaskManager";
+import DashboardMapView from "@/components/dashboard/DashboardMapView";
 import FinancialWidget from "@/components/dashboard/FinancialWidget";
 
 export default function Dashboard() {
@@ -210,8 +211,16 @@ export default function Dashboard() {
         </SheetContent>
       </Sheet>
 
-      {/* Task Manager Section */}
+      {/* Map View Section */}
       <section className="mt-8">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+          Territory Map
+        </h2>
+        <DashboardMapView />
+      </section>
+
+      {/* Task Manager Section */}
+      <section className="mt-8 mb-12">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
           Follow-up Tasks
         </h2>
