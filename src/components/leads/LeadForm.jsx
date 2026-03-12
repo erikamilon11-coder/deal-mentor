@@ -16,6 +16,8 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
     city: lead?.city || "",
     state: lead?.state || "",
     zip_code: lead?.zip_code || "",
+    latitude: lead?.latitude || "",
+    longitude: lead?.longitude || "",
     lead_source: lead?.lead_source || "",
     distress_tags: lead?.distress_tags || [],
     notes: lead?.notes || "",
@@ -27,6 +29,8 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
     onSave({
       ...formData,
       deal_score: formData.deal_score ? Number(formData.deal_score) : null,
+      latitude: formData.latitude ? Number(formData.latitude) : null,
+      longitude: formData.longitude ? Number(formData.longitude) : null,
     });
   };
 
@@ -83,6 +87,31 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
               onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
               className="mt-1.5 h-12 rounded-xl"
               placeholder="12345"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-slate-700">Latitude (optional)</Label>
+            <Input
+              type="number"
+              step="any"
+              value={formData.latitude}
+              onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+              className="mt-1.5 h-12 rounded-xl"
+              placeholder="29.7604"
+            />
+          </div>
+          <div>
+            <Label className="text-slate-700">Longitude (optional)</Label>
+            <Input
+              type="number"
+              step="any"
+              value={formData.longitude}
+              onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+              className="mt-1.5 h-12 rounded-xl"
+              placeholder="-95.3698"
             />
           </div>
         </div>
