@@ -43,7 +43,16 @@ export default function Buyers() {
 
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.Buyer.create(data),
-    onSuccess: () => {
+    onMutate: async (newBuyer) => {
+      await queryClient.cancelQueries({ queryKey: ["buyers"] });
+      const previousBuyers = queryClient.getQueryData(["buyers"]);
+      queryClient.setQueryData(["buyers"], (old) => [{ ...newBuyer, id: "temp-" + Date.now() }, ...(old || [])]);
+      return { previousBuyers };
+    },
+    onError: (err, newBuyer, context) => {
+      queryClient.setQueryData(["buyers"], context.previousBuyers);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
       setShowAdd(false);
       resetForm();
@@ -52,7 +61,18 @@ export default function Buyers() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Buyer.update(id, data),
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ["buyers"] });
+      const previousBuyers = queryClient.getQueryData(["buyers"]);
+      queryClient.setQueryData(["buyers"], (old) =>
+        old?.map((buyer) => (buyer.id === id ? { ...buyer, ...data } : buyer))
+      );
+      return { previousBuyers };
+    },
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(["buyers"], context.previousBuyers);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["buyers"] });
       setSelectedBuyer(null);
       resetForm();
@@ -222,12 +242,12 @@ export default function Buyers() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-lg mx-auto px-4 pb-24">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-lg mx-auto px-4 pb-24" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
         {/* Header */}
         <div className="pt-6 pb-4">
-          <h1 className="text-2xl font-bold text-slate-900">Buyers List</h1>
-          <p className="text-slate-500 text-sm mt-1">{buyers?.length || 0} buyers</p>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Buyers List</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{buyers?.length || 0} buyers</p>
         </div>
 
         {/* Search */}
@@ -291,14 +311,14 @@ export default function Buyers() {
         </div>
 
         {/* Add Button */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)" }}>
           <div className="max-w-lg mx-auto">
             <Button
               onClick={() => {
                 resetForm();
                 setShowAdd(true);
               }}
-              className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-lg font-semibold"
+              className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-lg font-semibold"
             >
               <Plus className="w-5 h-5 mr-2" />
               Add Buyer
