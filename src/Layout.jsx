@@ -58,6 +58,11 @@ export default function Layout({ children, currentPageName }) {
     
     if (currentIndex !== -1 && targetIndex !== -1) {
       setNavigationDirection(targetIndex > currentIndex ? 1 : -1);
+      // If clicking the current active page, navigate to root of that page to reset query params
+      if (currentPageName === targetPage && location.search) {
+        e.preventDefault();
+        window.history.pushState(null, "", createPageUrl(targetPage));
+      }
     } else {
       setNavigationDirection(1);
     }
