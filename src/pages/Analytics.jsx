@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, TrendingUp, Clock, DollarSign, Home, Award, Target, Activity } from "lucide-react";
+import { Loader2, TrendingUp, Clock, DollarSign, Home, Award, Target, Activity, Globe } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import ResponseTimeChart from "@/components/analytics/ResponseTimeChart";
 import RevenueProjections from "@/components/analytics/RevenueProjections";
 import AnalyticsFilters from "@/components/analytics/AnalyticsFilters";
 import ProfitabilityAnalyzer from "@/components/analytics/ProfitabilityAnalyzer";
+import MarketInsightsDashboard from "@/components/analytics/MarketInsightsDashboard";
 
 export default function Analytics() {
   const [timeframe, setTimeframe] = useState("30d");
@@ -196,6 +197,10 @@ export default function Analytics() {
         <Tabs defaultValue="performance" className="space-y-4">
           <TabsList className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1">
             <TabsTrigger value="performance">Performance</TabsTrigger>
+            <TabsTrigger value="market" className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Market Insights
+            </TabsTrigger>
             <TabsTrigger value="conversion">Conversion</TabsTrigger>
             <TabsTrigger value="response">Response Time</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
@@ -204,6 +209,10 @@ export default function Analytics() {
 
           <TabsContent value="performance">
             <PerformanceMetrics leads={filteredLeads} messages={filteredMessages} offers={filteredOffers} />
+          </TabsContent>
+
+          <TabsContent value="market">
+            <MarketInsightsDashboard />
           </TabsContent>
 
           <TabsContent value="conversion">
