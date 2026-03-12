@@ -1,12 +1,15 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MapPin, Loader2, Filter } from "lucide-react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { MapPin, Loader2, Filter, List } from "lucide-react";
+import MapLeadsList from "@/components/map/MapLeadsList";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
@@ -61,8 +64,24 @@ const statusColors = {
   "Dead": "#6b7280",
 };
 
+// Component to fit map bounds to visible markers
+function MapBounds({ leads }) {
+  const map = useMap();
+  
+  React.useEffect(() => {
+    if (leads.length > 0) {
+      const bounds = L.latLngBounds(leads.map(l => [l.latitude, l.longitude]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    }
+  }, [leads, map]);
+  
+  return null;
+}
+
 export default function MapView() {
   const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [mapBounds, setMapBounds] = useState(null);
   const navigate = useNavigate();
 
   const { data: leads, isLoading } = useQuery({
@@ -78,6 +97,30 @@ export default function MapView() {
   const leadsWithCoordinates = filteredLeads.filter(
     (lead) => lead.latitude && lead.longitude
   );
+
+  // Filter by map bounds when user interacts with map
+  const visibleLeads = mapBounds
+    ? leadsWithCoordinates.filter((lead) => {
+        const lat = lead.latitude;
+        const lng = lead.longitude;
+        return (
+          lat >= mapBounds.south &&
+          lat <= mapBounds.north &&
+          lng >= mapBounds.west &&
+          lng <= mapBounds.east
+        );
+      })
+    : leadsWithCoordinates;
+
+  const handleMapMove = (e) => {
+    const bounds = e.target.getBounds();
+    setMapBounds({
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+    });
+  };
 
   const defaultCenter = leadsWithCoordinates.length > 0
     ? [leadsWithCoordinates[0].latitude, leadsWithCoordinates[0].longitude]
@@ -110,10 +153,31 @@ export default function MapView() {
                 Lead Map
               </h1>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                {leadsWithCoordinates.length} of {filteredLeads.length} leads mapped
+                {mapBounds ? `${visibleLeads.length} visible` : `${leadsWithCoordinates.length} mapped`} of {filteredLeads.length} leads
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <List className="w-4 h-4" />
+                    {mapBounds ? `View ${visibleLeads.length}` : 'List'}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>
+                      {mapBounds ? "Leads in View" : "All Mapped Leads"}
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <MapLeadsList 
+                      leads={mapBounds ? visibleLeads : leadsWithCoordinates}
+                      title={mapBounds ? "Visible on Map" : "All Leads"}
+                    />
+                  </div>
+                </SheetContent>
+              </Sheet>
               <Filter className="w-4 h-4 text-slate-500" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-40 rounded-lg">
@@ -156,57 +220,101 @@ export default function MapView() {
             zoom={12}
             style={{ height: "100%", width: "100%" }}
             className="z-0"
+            whenReady={(map) => {
+              map.target.on('moveend', handleMapMove);
+              map.target.on('zoomend', handleMapMove);
+            }}
           >
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            {leadsWithCoordinates.map((lead) => (
-              <Marker
-                key={lead.id}
-                position={[lead.latitude, lead.longitude]}
-                icon={createCustomIcon(statusColors[lead.status] || statusColors["New"])}
-                eventHandlers={{
-                  click: () => handleMarkerClick(lead.id),
-                }}
-              >
-                <Popup>
-                  <div className="p-2 min-w-[200px]">
-                    <h3 className="font-semibold text-slate-900 text-sm mb-2">
-                      {lead.property_address}
-                    </h3>
-                    {(lead.city || lead.state) && (
-                      <p className="text-xs text-slate-600 mb-2">
-                        {[lead.city, lead.state].filter(Boolean).join(", ")}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2 mb-3">
-                      <span
-                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                        style={{
-                          backgroundColor: statusColors[lead.status] + "20",
-                          color: statusColors[lead.status],
-                        }}
-                      >
-                        {lead.status}
-                      </span>
-                      {lead.deal_score && (
-                        <span className="text-xs text-slate-600">
-                          Score: {lead.deal_score}/10
-                        </span>
+            <MapBounds leads={leadsWithCoordinates} />
+            <MarkerClusterGroup
+              chunkedLoading
+              maxClusterRadius={50}
+              spiderfyOnMaxZoom={true}
+              showCoverageOnHover={false}
+              zoomToBoundsOnClick={true}
+              iconCreateFunction={(cluster) => {
+                const count = cluster.getChildCount();
+                const markers = cluster.getAllChildMarkers();
+                const statusCounts = {};
+                markers.forEach(marker => {
+                  const status = marker.options.leadStatus;
+                  statusCounts[status] = (statusCounts[status] || 0) + 1;
+                });
+                const dominantStatus = Object.entries(statusCounts).sort((a, b) => b[1] - a[1])[0][0];
+                const color = statusColors[dominantStatus] || statusColors["New"];
+                
+                return L.divIcon({
+                  html: `<div style="
+                    background: ${color};
+                    color: white;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    font-size: 14px;
+                    border: 3px solid white;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                  ">${count}</div>`,
+                  className: 'custom-cluster-icon',
+                  iconSize: L.point(40, 40),
+                });
+              }}
+            >
+              {leadsWithCoordinates.map((lead) => (
+                <Marker
+                  key={lead.id}
+                  position={[lead.latitude, lead.longitude]}
+                  icon={createCustomIcon(statusColors[lead.status] || statusColors["New"])}
+                  leadStatus={lead.status}
+                  eventHandlers={{
+                    click: () => handleMarkerClick(lead.id),
+                  }}
+                >
+                  <Popup>
+                    <div className="p-2 min-w-[200px]">
+                      <h3 className="font-semibold text-slate-900 text-sm mb-2">
+                        {lead.property_address}
+                      </h3>
+                      {(lead.city || lead.state) && (
+                        <p className="text-xs text-slate-600 mb-2">
+                          {[lead.city, lead.state].filter(Boolean).join(", ")}
+                        </p>
                       )}
+                      <div className="flex items-center gap-2 mb-3">
+                        <span
+                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                          style={{
+                            backgroundColor: statusColors[lead.status] + "20",
+                            color: statusColors[lead.status],
+                          }}
+                        >
+                          {lead.status}
+                        </span>
+                        {lead.deal_score && (
+                          <span className="text-xs text-slate-600">
+                            Score: {lead.deal_score}/10
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        size="sm"
+                        className="w-full bg-slate-900 hover:bg-slate-800 h-8 text-xs"
+                        onClick={() => handleMarkerClick(lead.id)}
+                      >
+                        View Details
+                      </Button>
                     </div>
-                    <Button
-                      size="sm"
-                      className="w-full bg-slate-900 hover:bg-slate-800 h-8 text-xs"
-                      onClick={() => handleMarkerClick(lead.id)}
-                    >
-                      View Details
-                    </Button>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
+                  </Popup>
+                </Marker>
+              ))}
+            </MarkerClusterGroup>
           </MapContainer>
         )}
       </div>
