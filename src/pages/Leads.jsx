@@ -2,24 +2,30 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Filter, Loader2, Home } from "lucide-react";
 
 import LeadCard from "@/components/dashboard/LeadCard";
+import PullToRefresh from "@/components/PullToRefresh";
 
 const STATUSES = ["All", "New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
 export default function Leads() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const queryClient = useQueryClient();
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["leads"],
     queryFn: () => base44.entities.Lead.list("-created_date"),
   });
+
+  const handleRefresh = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["leads"] });
+  };
 
   const filteredLeads = leads?.filter((lead) => {
     const matchesSearch =
@@ -38,14 +44,15 @@ export default function Leads() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-lg mx-auto px-4 pb-24">
-        {/* Header */}
-        <div className="pt-6 pb-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">All Leads</h1>
-            <p className="text-slate-500 text-sm mt-1">{leads?.length || 0} properties</p>
-          </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="max-w-lg mx-auto px-4" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
+          {/* Header */}
+          <div className="pt-6 pb-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">All Leads</h1>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{leads?.length || 0} properties</p>
+            </div>
           <Link to={createPageUrl("Dashboard")}>
             <Button variant="ghost" size="icon" className="rounded-xl">
               <Home className="w-5 h-5" />
@@ -99,18 +106,19 @@ export default function Leads() {
           ))}
         </div>
 
-        {/* Add Button */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4">
-          <div className="max-w-lg mx-auto">
-            <Link to={createPageUrl("AddLead")}>
-              <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-lg font-semibold">
-                <Plus className="w-5 h-5 mr-2" />
-                Add New Lead
-              </Button>
-            </Link>
+          {/* Add Button */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)" }}>
+            <div className="max-w-lg mx-auto">
+              <Link to={createPageUrl("AddLead")}>
+                <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-lg font-semibold">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add New Lead
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </div>
   );
 }
