@@ -47,20 +47,23 @@ export default function OwnerSection({ leadId, owners, phones, lead }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <h3 className="font-semibold text-slate-900 flex items-center gap-2">
           <User className="w-4 h-4" />
           Owners
         </h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowAddOwner(true)}
-          className="text-slate-600"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add
-        </Button>
+        <div className="flex items-center gap-2">
+          <SkipTraceButton leadId={leadId} lead={lead} />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAddOwner(true)}
+            className="text-slate-600"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add
+          </Button>
+        </div>
       </div>
 
       {showAddOwner && (
@@ -114,10 +117,7 @@ export default function OwnerSection({ leadId, owners, phones, lead }) {
       )}
 
       {owners?.length === 0 && !showAddOwner && (
-        <div className="space-y-4">
-          <p className="text-sm text-slate-500 py-4 text-center">No owners added yet</p>
-          <SkipTraceButton leadId={leadId} lead={lead} />
-        </div>
+        <p className="text-sm text-slate-500 py-4 text-center">No owners added yet</p>
       )}
 
       {owners?.map((owner) => (

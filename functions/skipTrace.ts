@@ -69,11 +69,16 @@ If you cannot find certain information, indicate that explicitly. Return results
     });
 
     // Save to Lead record
-    let updateData = {
+    const updateData = {
       skip_trace_status: skipTraceResult.owner_name ? 'Completed' : 'No Data Found',
+      owner: skipTraceResult.owner_name || leadData.owner || '',
+      phone: skipTraceResult.phone_numbers?.[0] || leadData.phone || '',
+      email: skipTraceResult.email_addresses?.[0] || leadData.email || '',
     };
 
-    await base44.entities.Lead.update(lead_id, updateData);
+    if (lead_id) {
+      await base44.entities.Lead.update(lead_id, updateData);
+    }
 
     // Create or update Owner record if data found
     let ownerRecord = null;
