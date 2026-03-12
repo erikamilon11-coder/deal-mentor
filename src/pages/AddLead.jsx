@@ -11,12 +11,26 @@ export default function AddLead() {
   const navigate = useNavigate();
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Lead.create({
-      ...data,
-      status: "New",
-      last_activity_date: new Date().toISOString(),
-      next_action_suggestion: "Send First Message",
-    }),
+    mutationFn: async (data) => {
+      const lead = await base44.entities.Lead.create({
+        ...data,
+        status: "New",
+        last_activity_date: new Date().toISOString(),
+        next_action_suggestion: "Send First Message",
+      });
+
+      // If enrichment data exists, save it to PropertyData entity
+      if (data.enrichmentData) {
+        await base44.entities.PropertyData.create({
+          lead_id: lead.id,
+          ...data.enrichmentData,
+          data_source: "Public Records API",
+          fetched_date: new Date().toISOString()
+        });
+      }
+
+      return lead;
+    },
     onSuccess: (lead) => {
       navigate(createPageUrl(`LeadDetail?id=${lead.id}`));
     },

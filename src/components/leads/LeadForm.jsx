@@ -5,7 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Save, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { X, Save, MapPin, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 const LEAD_SOURCES = ["Driving for Dollars", "List", "Referral", "Other"];
 const DISTRESS_TAGS = ["Vacant", "Overgrown", "Boarded", "FSBO", "Inherited", "Other"];
@@ -24,6 +26,10 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
     deal_score: lead?.deal_score || "",
   });
 
+  const [enrichmentData, setEnrichmentData] = useState(null);
+  const [isEnriching, setIsEnriching] = useState(false);
+  const [enrichmentError, setEnrichmentError] = useState(null);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave({
@@ -31,6 +37,7 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
       deal_score: formData.deal_score ? Number(formData.deal_score) : null,
       latitude: formData.latitude ? Number(formData.latitude) : null,
       longitude: formData.longitude ? Number(formData.longitude) : null,
+      enrichmentData: enrichmentData,
     });
   };
 
@@ -41,6 +48,51 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
         ? prev.distress_tags.filter(t => t !== tag)
         : [...prev.distress_tags, tag]
     }));
+  };
+
+  const fetchPropertyData = async () => {
+    if (!formData.property_address || !formData.city || !formData.state) {
+      setEnrichmentError("Please enter property address, city, and state first");
+      return;
+    }
+
+    setIsEnriching(true);
+    setEnrichmentError(null);
+
+    try {
+      const fullAddress = `${formData.property_address}, ${formData.city}, ${formData.state}${formData.zip_code ? ' ' + formData.zip_code : ''}`;
+      
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find detailed public property records for: ${fullAddress}. Return ONLY the data in the exact JSON format specified, with null for any unavailable fields.`,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            tax_assessed_value: { type: "number" },
+            estimated_value: { type: "number" },
+            last_sale_price: { type: "number" },
+            last_sale_date: { type: "string" },
+            year_built: { type: "number" },
+            square_footage: { type: "number" },
+            bedrooms: { type: "number" },
+            bathrooms: { type: "number" },
+            lot_size: { type: "number" },
+            property_type: { type: "string" }
+          }
+        }
+      });
+
+      setEnrichmentData(result);
+      
+      // Auto-populate zip if found
+      if (result.zip_code && !formData.zip_code) {
+        setFormData(prev => ({ ...prev, zip_code: result.zip_code }));
+      }
+    } catch (error) {
+      setEnrichmentError(error.message || "Failed to fetch property data");
+    } finally {
+      setIsEnriching(false);
+    }
   };
 
   return (
@@ -89,6 +141,120 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
               placeholder="12345"
             />
           </div>
+        </div>
+
+        {/* Property Enrichment */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-blue-600" />
+              <h4 className="font-semibold text-blue-900">Auto-Fetch Property Details</h4>
+            </div>
+            <Button
+              type="button"
+              onClick={fetchPropertyData}
+              disabled={isEnriching || !formData.property_address || !formData.city || !formData.state}
+              variant="outline"
+              size="sm"
+              className="bg-white border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              {isEnriching ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                  Fetching...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Fetch Data
+                </>
+              )}
+            </Button>
+          </div>
+
+          {enrichmentError && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
+              {enrichmentError}
+            </p>
+          )}
+
+          {enrichmentData && (
+            <div className="bg-white rounded-lg p-3 space-y-2">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle2 className="w-4 h-4 text-green-600" />
+                <p className="text-sm font-medium text-green-900">Property data found</p>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {enrichmentData.tax_assessed_value && (
+                  <div>
+                    <span className="text-slate-500">Tax Assessment:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      ${enrichmentData.tax_assessed_value.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.estimated_value && (
+                  <div>
+                    <span className="text-slate-500">Est. Value:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      ${enrichmentData.estimated_value.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.square_footage && (
+                  <div>
+                    <span className="text-slate-500">Sq Ft:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      {enrichmentData.square_footage.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.year_built && (
+                  <div>
+                    <span className="text-slate-500">Year Built:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      {enrichmentData.year_built}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.bedrooms && (
+                  <div>
+                    <span className="text-slate-500">Beds:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      {enrichmentData.bedrooms}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.bathrooms && (
+                  <div>
+                    <span className="text-slate-500">Baths:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      {enrichmentData.bathrooms}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.last_sale_price && (
+                  <div>
+                    <span className="text-slate-500">Last Sale:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      ${enrichmentData.last_sale_price.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+                {enrichmentData.last_sale_date && (
+                  <div>
+                    <span className="text-slate-500">Sale Date:</span>
+                    <span className="ml-1 font-medium text-slate-900">
+                      {enrichmentData.last_sale_date}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-blue-700 mt-2">
+                This data will be saved with the lead automatically
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
