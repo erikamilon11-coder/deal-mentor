@@ -122,7 +122,11 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
         response_json_schema: {
           type: "object",
           properties: {
+            city: { type: "string" },
+            state: { type: "string" },
             zip_code: { type: "string" },
+            latitude: { type: "number" },
+            longitude: { type: "number" },
             tax_assessed_value: { type: "number" },
             estimated_value: { type: "number" },
             last_sale_price: { type: "number" },
@@ -138,9 +142,14 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
       });
 
       setEnrichmentData(result);
-      if (result.zip_code && !formData.zip_code) {
-        updateField("zip_code", result.zip_code);
-      }
+      setFormData((prev) => ({
+        ...prev,
+        city: result.city || prev.city,
+        state: result.state || prev.state,
+        zip_code: result.zip_code || prev.zip_code,
+        latitude: result.latitude ?? prev.latitude,
+        longitude: result.longitude ?? prev.longitude,
+      }));
     } catch (error) {
       setEnrichmentError(error.message || "Failed to fetch property data.");
     } finally {
@@ -217,7 +226,7 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
           <div>
             <Label className="text-slate-700">Phone</Label>
             <Input
-              type="tel"
+              type="text"
               value={formData.phone}
               onChange={(e) => updateField("phone", e.target.value)}
               className="mt-1.5 h-12 rounded-xl"
@@ -230,7 +239,7 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
         <div>
           <Label className="text-slate-700">Email</Label>
           <Input
-            type="email"
+            type="text"
             value={formData.email}
             onChange={(e) => updateField("email", e.target.value)}
             className="mt-1.5 h-12 rounded-xl"
@@ -371,8 +380,7 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
             <div>
               <Label className="text-slate-700">Latitude (optional)</Label>
               <Input
-                type="number"
-                step="any"
+                type="text"
                 value={formData.latitude}
                 onChange={(e) => updateField("latitude", e.target.value)}
                 className="mt-1.5 h-12 rounded-xl"
@@ -382,8 +390,7 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
             <div>
               <Label className="text-slate-700">Longitude (optional)</Label>
               <Input
-                type="number"
-                step="any"
+                type="text"
                 value={formData.longitude}
                 onChange={(e) => updateField("longitude", e.target.value)}
                 className="mt-1.5 h-12 rounded-xl"
