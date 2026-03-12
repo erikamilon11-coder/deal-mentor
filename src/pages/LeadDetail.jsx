@@ -21,6 +21,7 @@ import {
   Loader2,
   Clock,
   ClipboardCheck,
+  Mail,
 } from "lucide-react";
 import { addDays } from "date-fns";
 
@@ -32,6 +33,7 @@ import OfferCalculator from "@/components/offers/OfferCalculator";
 import LeadForm from "@/components/leads/LeadForm";
 import ActivityFeed from "@/components/leads/ActivityFeed";
 import ClosingChecklist from "@/components/contracts/ClosingChecklist";
+import DripCampaignManager from "@/components/email/DripCampaignManager";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -370,10 +372,14 @@ export default function LeadDetail() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-6" : "grid grid-cols-5"}`}>
+          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-7" : "grid grid-cols-6"}`}>
             <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-1" />
               Chat
+            </TabsTrigger>
+            <TabsTrigger value="email" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <Mail className="w-4 h-4 mr-1" />
+              Email
             </TabsTrigger>
             <TabsTrigger value="owners" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <User className="w-4 h-4 mr-1" />
@@ -408,6 +414,10 @@ export default function LeadDetail() {
                 owner={owners?.[0]}
                 onMessageSent={handleMessageSent}
               />
+            </TabsContent>
+
+            <TabsContent value="email" className="mt-0">
+              <DripCampaignManager leadId={leadId} owner={owners?.[0]} />
             </TabsContent>
 
             <TabsContent value="owners" className="mt-0">

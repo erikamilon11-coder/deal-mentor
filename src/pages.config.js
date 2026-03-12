@@ -52,8 +52,8 @@ import Buyers from './pages/Buyers';
 import Dashboard from './pages/Dashboard';
 import LeadDetail from './pages/LeadDetail';
 import Leads from './pages/Leads';
-import Settings from './pages/Settings';
 import MapView from './pages/MapView';
+import Settings from './pages/Settings';
 import __Layout from './Layout.jsx';
 
 
@@ -63,8 +63,8 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "LeadDetail": LeadDetail,
     "Leads": Leads,
-    "Settings": Settings,
     "MapView": MapView,
+    "Settings": Settings,
 }
 
 export const pagesConfig = {
