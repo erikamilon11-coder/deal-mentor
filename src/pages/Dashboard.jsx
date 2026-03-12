@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Home, Calendar, MessageSquare, LayoutGrid, Loader2 } from "lucide-react";
@@ -11,9 +11,11 @@ import { isToday, isBefore, startOfDay } from "date-fns";
 import StatsCard from "@/components/dashboard/StatsCard";
 import LeadCard from "@/components/dashboard/LeadCard";
 import PipelineView from "@/components/pipeline/PipelineView";
+import PullToRefresh from "@/components/PullToRefresh";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("followups");
+  const queryClient = useQueryClient();
 
   const { data: leads, isLoading } = useQuery({
     queryKey: ["leads"],
@@ -24,6 +26,13 @@ export default function Dashboard() {
     queryKey: ["allTasks"],
     queryFn: () => base44.entities.Task.filter({ status: "Open" }),
   });
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["leads"] }),
+      queryClient.invalidateQueries({ queryKey: ["allTasks"] }),
+    ]);
+  };
 
   const todayStart = startOfDay(new Date());
 
@@ -46,13 +55,14 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-lg mx-auto px-4 pb-24">
-        {/* Header */}
-        <div className="pt-6 pb-4">
-          <h1 className="text-2xl font-bold text-slate-900">Deal Mentor</h1>
-          <p className="text-slate-500 text-sm mt-1">Your real estate acquisition CRM</p>
-        </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="max-w-lg mx-auto px-4" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
+          {/* Header */}
+          <div className="pt-6 pb-4">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Deal Mentor</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Your real estate acquisition CRM</p>
+          </div>
 
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 mb-6">
@@ -131,18 +141,19 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
 
-        {/* Quick Actions */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4">
-          <div className="max-w-lg mx-auto">
-            <Link to={createPageUrl("AddLead")}>
-              <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-lg font-semibold">
-                <Plus className="w-5 h-5 mr-2" />
-                Add New Lead
-              </Button>
-            </Link>
+          {/* Quick Actions */}
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)" }}>
+            <div className="max-w-lg mx-auto">
+              <Link to={createPageUrl("AddLead")}>
+                <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-lg font-semibold">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add New Lead
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </div>
   );
 }
