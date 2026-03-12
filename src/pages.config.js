@@ -59,6 +59,7 @@ import Analytics from './pages/Analytics';
 import CalendarView from './pages/CalendarView';
 import SignContract from './pages/SignContract';
 import SignatureSuccess from './pages/SignatureSuccess';
+import TaskBoard from './pages/TaskBoard';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "CalendarView": CalendarView,
     "SignContract": SignContract,
     "SignatureSuccess": SignatureSuccess,
+    "TaskBoard": TaskBoard,
 }
 
 export const pagesConfig = {
