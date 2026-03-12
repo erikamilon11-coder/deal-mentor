@@ -9,74 +9,56 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { contractId, signerEmail, signerName, documentUrl } = await req.json();
+    const { lead_id, signer_email, signer_name, document_url, document_title } = await req.json();
 
-    if (!contractId || !signerEmail || !signerName) {
+    if (!lead_id || !signer_email || !document_url) {
       return Response.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: lead_id, signer_email, document_url' },
         { status: 400 }
       );
     }
 
-    // Get the app's base URL for the signing page
-    const appUrl = Deno.env.get('BASE44_APP_URL') || req.headers.get('origin') || 'https://app.base44.com';
-    const signingUrl = `${appUrl}/sign-contract?id=${contractId}`;
+    // Fetch lead data for email context
+    const leads = await base44.entities.Lead.filter({ id: lead_id });
+    const lead = leads?.[0];
 
-    // Get contract and lead details
-    const contract = await base44.asServiceRole.entities.Contract.filter({ id: contractId }).then(r => r[0]);
-    const lead = contract?.lead_id 
-      ? await base44.asServiceRole.entities.Lead.filter({ id: contract.lead_id }).then(r => r[0])
-      : null;
+    if (!lead) {
+      return Response.json({ error: 'Lead not found' }, { status: 404 });
+    }
 
     // Send email with signing link
-    await base44.asServiceRole.integrations.Core.SendEmail({
-      to: signerEmail,
-      subject: `Contract Ready to Sign: ${lead?.property_address || 'Property Purchase Agreement'}`,
-      body: `
-        Hello ${signerName},
+    const emailBody = `
+Dear ${signer_name || 'there'},
 
-        Your contract is ready for electronic signature.
+A contract document requires your signature: ${document_title}
 
-        Property: ${lead?.property_address || 'N/A'}
-        ${lead?.city ? `Location: ${lead.city}, ${lead.state} ${lead.zip_code}` : ''}
-        ${contract?.purchase_price ? `Purchase Price: $${contract.purchase_price.toLocaleString()}` : ''}
-        ${contract?.closing_date ? `Closing Date: ${new Date(contract.closing_date).toLocaleDateString()}` : ''}
+Property: ${lead.property_address}, ${lead.city}, ${lead.state} ${lead.zip_code}
 
-        To review and sign the contract, please click the link below:
-        ${signingUrl}
+Please review and sign the document by clicking the link below:
+${document_url}
 
-        This link will allow you to:
-        - Review the full contract details
-        - Draw your electronic signature
-        - Complete the signing process securely
+This document is ready for your review and signature.
 
-        Your signature will be legally binding and the contract will be finalized immediately upon completion.
+Best regards,
+${user.full_name || 'Your Agent'}
+    `.trim();
 
-        If you have any questions, please contact us.
-
-        Best regards,
-        ${user.full_name || 'Your Agent'}
-      `,
-    });
-
-    // Update contract status
-    await base44.asServiceRole.entities.Contract.update(contractId, {
-      status: 'Sent',
-      signer_email: signerEmail,
-      signer_name: signerName,
-      sent_date: new Date().toISOString(),
+    await base44.integrations.Core.SendEmail({
+      to: signer_email,
+      subject: `Document Signing Required: ${document_title}`,
+      body: emailBody,
+      from_name: user.full_name || 'Deal Mentor',
     });
 
     return Response.json({
       success: true,
-      message: 'Contract sent for signature',
-      signingUrl,
+      message: 'Contract sent successfully',
+      envelope_id: null, // Can be used for tracking if implementing DocuSign
     });
-
   } catch (error) {
-    console.error('Send contract error:', error);
+    console.error('Error sending contract:', error);
     return Response.json(
-      { error: error.message },
+      { error: error.message || 'Failed to send contract' },
       { status: 500 }
     );
   }

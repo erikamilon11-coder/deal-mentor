@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, FileText, Download, Send, CheckCircle2 } from "lucide-react";
+import { Loader2, FileText, Download, Send, CheckCircle2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import SignatureTracker from "./SignatureTracker";
 
 const documentTemplates = {
   "purchase_agreement": {
@@ -275,12 +276,9 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
       const pdfBlob = doc.output("blob");
       
       // Upload PDF to get URL
-      const formData = new FormData();
-      formData.append("file", pdfBlob, "contract.pdf");
-      
       const uploadResponse = await base44.integrations.Core.UploadFile({ file: pdfBlob });
       
-      // Create contract record
+      // Create contract record with sent status
       await createContractMutation.mutateAsync({
         lead_id: lead.id,
         purchase_price: parseFloat(documentData.purchase_price) || null,
@@ -292,7 +290,7 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
         sent_date: new Date().toISOString(),
       });
 
-      // Send contract for signature
+      // Send contract via email
       const signatureResponse = await base44.functions.invoke("sendContractForSignature", {
         lead_id: lead.id,
         signer_email: signerEmail,
@@ -303,6 +301,9 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
 
       if (signatureResponse.data.success) {
         toast.success("Contract sent for signature!");
+        setSelectedTemplate("");
+        setSignerEmail("");
+        setSignerName("");
       } else {
         toast.error("Failed to send contract");
       }
@@ -318,6 +319,7 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
 
   return (
     <div className="space-y-6">
+      <SignatureTracker lead={lead} />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
