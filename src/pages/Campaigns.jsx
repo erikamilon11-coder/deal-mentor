@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CampaignManager from "@/components/campaigns/CampaignManager";
 import NurtureSequenceGuide from "@/components/campaigns/NurtureSequenceGuide";
-import { Zap, BookOpen } from "lucide-react";
+import BulkEnrollmentTool from "@/components/campaigns/BulkEnrollmentTool";
+import EnrollmentTracker from "@/components/campaigns/EnrollmentTracker";
+import { Zap, BookOpen, Users, BarChart3 } from "lucide-react";
 
 export default function CampaignsPage() {
   const [activeTab, setActiveTab] = useState("campaigns");
@@ -20,10 +22,18 @@ export default function CampaignsPage() {
             </p>
           </div>
 
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsList className="grid w-full max-w-2xl grid-cols-4">
             <TabsTrigger value="campaigns" className="flex items-center gap-2">
               <Zap className="w-4 h-4" />
               Campaigns
+            </TabsTrigger>
+            <TabsTrigger value="enroll" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Bulk Enroll
+            </TabsTrigger>
+            <TabsTrigger value="tracking" className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Tracking
             </TabsTrigger>
             <TabsTrigger value="guide" className="flex items-center gap-2">
               <BookOpen className="w-4 h-4" />
@@ -33,6 +43,14 @@ export default function CampaignsPage() {
 
           <TabsContent value="campaigns" className="space-y-6">
             <CampaignManager />
+          </TabsContent>
+
+          <TabsContent value="enroll" className="space-y-6">
+            <BulkEnrollmentTool />
+          </TabsContent>
+
+          <TabsContent value="tracking" className="space-y-6">
+            <EnrollmentTracker />
           </TabsContent>
 
           <TabsContent value="guide" className="space-y-6">
