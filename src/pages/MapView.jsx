@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { MapPin, Loader2, Filter, List } from "lucide-react";
 import MapLeadsList from "@/components/map/MapLeadsList";
+import RouteOptimizer from "@/components/map/RouteOptimizer";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
@@ -145,8 +146,8 @@ export default function MapView() {
         className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700"
       >
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
                 Lead Map
@@ -155,7 +156,7 @@ export default function MapView() {
                 {mapBounds ? `${visibleLeads.length} visible` : `${leadsWithCoordinates.length} mapped`} of {filteredLeads.length} leads
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Sheet>
                 <SheetTrigger asChild>
                   <Button variant="outline" size="sm" className="gap-2">
@@ -169,7 +170,11 @@ export default function MapView() {
                       {mapBounds ? "Leads in View" : "All Mapped Leads"}
                     </SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4">
+                  <div className="mt-4 space-y-4">
+                    <RouteOptimizer 
+                      leads={leadsWithCoordinates}
+                      visibleLeads={mapBounds ? visibleLeads : leadsWithCoordinates}
+                    />
                     <MapLeadsList 
                       leads={mapBounds ? visibleLeads : leadsWithCoordinates}
                       title={mapBounds ? "Visible on Map" : "All Leads"}
