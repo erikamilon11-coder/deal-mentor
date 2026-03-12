@@ -41,6 +41,7 @@ import DocumentTemplateGenerator from "@/components/contracts/DocumentTemplateGe
 import ExpenseTracker from "@/components/leads/ExpenseTracker";
 import PropertyDataCard from "@/components/property/PropertyDataCard";
 import PropertyValuationCard from "@/components/property/PropertyValuationCard";
+import InvestmentCriteriaManager from "@/components/offers/InvestmentCriteriaManager";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -110,6 +111,11 @@ export default function LeadDetail() {
     queryKey: ["propertyData", leadId],
     queryFn: () => base44.entities.PropertyData.filter({ lead_id: leadId }).then(r => r[0]),
     enabled: !!leadId,
+  });
+
+  const { data: criteria = [] } = useQuery({
+    queryKey: ["investmentCriteria"],
+    queryFn: () => base44.entities.InvestmentCriteria.list(),
   });
 
   const updateLeadMutation = useMutation({
@@ -427,6 +433,11 @@ export default function LeadDetail() {
           </div>
         )}
 
+        {/* Investment Criteria Manager */}
+        <div className="flex justify-end mb-4">
+          <InvestmentCriteriaManager />
+        </div>
+
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-9" : "grid grid-cols-8"}`}>
@@ -524,6 +535,34 @@ export default function LeadDetail() {
             </TabsContent>
 
             <TabsContent value="offer" className="mt-0">
+              <div className="space-y-4 mb-6">
+                {propertyData && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-blue-900">Auto-Generate Offer</p>
+                        <p className="text-xs text-blue-700 mt-1">
+                          Uses AVM valuation + your investment criteria
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          base44.functions.invoke("autoGenerateOffer", {
+                            lead_id: leadId,
+                            property_data_id: propertyData.id,
+                            criteria_id: criteria?.find(c => c.is_default)?.id || criteria?.[0]?.id,
+                          }).then(() => {
+                            queryClient.invalidateQueries({ queryKey: ["offers", leadId] });
+                          });
+                        }}
+                      >
+                        Generate
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <OfferCalculator
                 leadId={leadId}
                 existingOffer={latestOffer}
