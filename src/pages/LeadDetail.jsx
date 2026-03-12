@@ -43,6 +43,7 @@ import PropertyDataCard from "@/components/property/PropertyDataCard";
 import PropertyValuationCard from "@/components/property/PropertyValuationCard";
 import InvestmentCriteriaManager from "@/components/offers/InvestmentCriteriaManager";
 import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
+import CallLogger from "@/components/calls/CallLogger";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -484,13 +485,16 @@ export default function LeadDetail() {
 
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100">
             <TabsContent value="messages" className="mt-0">
-              <MessageSection
-                leadId={leadId}
-                messages={messages}
-                lead={lead}
-                owner={owners?.[0]}
-                onMessageSent={handleMessageSent}
-              />
+              <div className="space-y-6">
+                <CallLogger leadId={leadId} owner={owners?.[0]} />
+                <MessageSection
+                  leadId={leadId}
+                  messages={messages}
+                  lead={lead}
+                  owner={owners?.[0]}
+                  onMessageSent={handleMessageSent}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="email" className="mt-0">
