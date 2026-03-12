@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -121,6 +122,82 @@ export default function LeadDetail() {
   const { data: criteria = [] } = useQuery({
     queryKey: ["investmentCriteria"],
     queryFn: () => base44.entities.InvestmentCriteria.list(),
+  });
+
+  const primaryOwner = owners?.[0] || null;
+  const ownerPhones = primaryOwner ? (phones?.filter((phone) => phone.owner_id === primaryOwner.id) || []) : [];
+  const primaryPhone = lead?.phone || ownerPhones[0]?.phone_number || "";
+
+  const saveLeadFormMutation = useMutation({
+    mutationFn: async (data) => {
+      const { enrichmentData, ...leadData } = data;
+
+      await base44.entities.Lead.update(leadId, leadData);
+
+      let ownerId = primaryOwner?.id;
+
+      if (leadData.owner) {
+        if (ownerId) {
+          await base44.entities.Owner.update(ownerId, {
+            owner_name: leadData.owner,
+            email: leadData.email || null,
+            mailing_address: primaryOwner?.mailing_address || "",
+            entity_type: primaryOwner?.entity_type || "Individual",
+          });
+        } else {
+          const createdOwner = await base44.entities.Owner.create({
+            lead_id: leadId,
+            owner_name: leadData.owner,
+            email: leadData.email || null,
+            mailing_address: "",
+            entity_type: "Individual",
+          });
+          ownerId = createdOwner.id;
+        }
+
+        if (leadData.phone) {
+          if (ownerPhones[0]) {
+            await base44.entities.Phone.update(ownerPhones[0].id, {
+              phone_number: leadData.phone,
+              confidence_level: ownerPhones[0].confidence_level || "Medium",
+              do_not_contact: ownerPhones[0].do_not_contact || false,
+            });
+          } else if (ownerId) {
+            await base44.entities.Phone.create({
+              owner_id: ownerId,
+              phone_number: leadData.phone,
+              confidence_level: "Medium",
+            });
+          }
+        }
+      }
+
+      if (enrichmentData) {
+        const existingPropertyData = await base44.entities.PropertyData.filter({ lead_id: leadId });
+        if (existingPropertyData[0]) {
+          await base44.entities.PropertyData.update(existingPropertyData[0].id, {
+            ...enrichmentData,
+            data_source: existingPropertyData[0].data_source || "Public Records",
+            fetched_date: new Date().toISOString(),
+          });
+        } else {
+          await base44.entities.PropertyData.create({
+            lead_id: leadId,
+            ...enrichmentData,
+            data_source: "Public Records",
+            fetched_date: new Date().toISOString(),
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      queryClient.invalidateQueries({ queryKey: ["owners", leadId] });
+      queryClient.invalidateQueries({ queryKey: ["phones"] });
+      queryClient.invalidateQueries({ queryKey: ["propertyData", leadId] });
+      setShowEdit(false);
+    },
   });
 
   const updateLeadMutation = useMutation({
@@ -628,11 +705,21 @@ export default function LeadDetail() {
           </div>
         </Tabs>
 
-        {/* Notes */}
-        {lead.notes && (
-          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mt-4">
-            <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Notes</p>
-            <p className="text-slate-700 text-sm whitespace-pre-wrap">{lead.notes}</p>
+        {/* Notes & Message */}
+        {(lead.message || lead.notes) && (
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100 mt-4 space-y-4">
+            {lead.message && (
+              <div>
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Message</p>
+                <p className="text-slate-700 text-sm whitespace-pre-wrap">{lead.message}</p>
+              </div>
+            )}
+            {lead.notes && (
+              <div className={lead.message ? "pt-4 border-t border-slate-100" : ""}>
+                <p className="text-xs text-slate-500 uppercase tracking-wide mb-2">Notes</p>
+                <p className="text-slate-700 text-sm whitespace-pre-wrap">{lead.notes}</p>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -645,10 +732,15 @@ export default function LeadDetail() {
           </SheetHeader>
           <div className="mt-4">
             <LeadForm
-              lead={lead}
-              onSave={(data) => updateLeadMutation.mutate(data)}
+              lead={{
+                ...lead,
+                owner: lead.owner || primaryOwner?.owner_name || "",
+                phone: primaryPhone,
+                email: lead.email || primaryOwner?.email || "",
+              }}
+              onSave={(data) => saveLeadFormMutation.mutate(data)}
               onCancel={() => setShowEdit(false)}
-              isLoading={updateLeadMutation.isPending}
+              isLoading={saveLeadFormMutation.isPending}
             />
           </div>
         </SheetContent>

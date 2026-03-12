@@ -6,8 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Plus, Home, Calendar, MessageSquare, LayoutGrid, Loader2, Upload } from "lucide-react";
-import { isToday, isBefore, startOfDay } from "date-fns";
+import { Plus, Home, Calendar, MessageSquare, Loader2, Upload } from "lucide-react";
+import { isBefore, isToday, startOfDay } from "date-fns";
 
 import StatsCard from "@/components/dashboard/StatsCard";
 import LeadCard from "@/components/dashboard/LeadCard";
@@ -25,12 +25,12 @@ export default function Dashboard() {
   const [showBulkImport, setShowBulkImport] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: leads, isLoading } = useQuery({
+  const { data: leads = [], isLoading } = useQuery({
     queryKey: ["leads"],
     queryFn: () => base44.entities.Lead.list("-created_date"),
   });
 
-  const { data: tasks } = useQuery({
+  useQuery({
     queryKey: ["allTasks"],
     queryFn: () => base44.entities.Task.filter({ status: "Open" }),
   });
@@ -43,21 +43,20 @@ export default function Dashboard() {
   };
 
   const todayStart = startOfDay(new Date());
-
-  const followupLeads = leads?.filter(lead => {
+  const hasLeads = leads.length > 0;
+  const followupLeads = leads.filter((lead) => {
     if (!lead.next_followup_date) return false;
     const followupDate = new Date(lead.next_followup_date);
     return isToday(followupDate) || isBefore(followupDate, todayStart);
-  }) || [];
-
-  const newLeads = leads?.filter(l => l.status === "New") || [];
-  const respondedLeads = leads?.filter(l => l.status === "Responded") || [];
-  const activeLeads = leads?.filter(l => !["Closed", "Dead"].includes(l.status)) || [];
+  });
+  const newLeads = leads.filter((lead) => lead.status === "New");
+  const respondedLeads = leads.filter((lead) => lead.status === "Responded");
+  const activeLeads = leads.filter((lead) => !["Closed", "Dead"].includes(lead.status));
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
       </div>
     );
   }
@@ -65,137 +64,130 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="max-w-lg mx-auto px-4" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
-          {/* Header */}
-          <div className="pt-6 pb-4">
-            <div className="flex items-center justify-between">
+        <div className="mx-auto max-w-lg px-4 pb-40" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
+          <div className="pb-4 pt-6">
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Deal Mentor</h1>
-                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Your real estate acquisition CRM</p>
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Your real estate acquisition CRM</p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBulkImport(true)}
-                className="rounded-lg"
-              >
-                <Upload className="w-4 h-4 mr-1" />
-                Import
-              </Button>
+              {hasLeads && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBulkImport(true)}
+                  className="rounded-lg"
+                >
+                  <Upload className="mr-1 h-4 w-4" />
+                  Import
+                </Button>
+              )}
             </div>
           </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <StatsCard
-            title="Active Leads"
-            value={activeLeads.length}
-            icon={Home}
-            color="blue"
-          />
-          <StatsCard
-            title="Follow-ups Today"
-            value={followupLeads.length}
-            icon={Calendar}
-            color="amber"
-          />
-          <StatsCard
-            title="New Leads"
-            value={newLeads.length}
-            icon={Plus}
-            color="green"
-          />
-          <StatsCard
-            title="Responses"
-            value={respondedLeads.length}
-            icon={MessageSquare}
-            color="purple"
-          />
-        </div>
-
-        {/* Tasks Widget */}
-        <div className="mb-6">
-          <TasksWidget />
-        </div>
-
-        {/* Financial Widget */}
-        <div className="mb-6">
-          <FinancialWidget />
-        </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
-            <TabsTrigger value="followups" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
-              Follow-ups
-            </TabsTrigger>
-            <TabsTrigger value="new" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
-              New
-            </TabsTrigger>
-            <TabsTrigger value="map" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
-              Map
-            </TabsTrigger>
-            <TabsTrigger value="pipeline" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
-              Pipeline
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="followups" className="mt-4 space-y-3">
-            {followupLeads.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center">
-                <Calendar className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">No follow-ups due today</p>
-                <p className="text-sm text-slate-400 mt-1">Great job staying on top of things!</p>
-              </div>
-            ) : (
-              followupLeads.map((lead) => (
-                <LeadCard key={lead.id} lead={lead} showFollowup />
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="new" className="mt-4 space-y-3">
-            {newLeads.length === 0 ? (
-              <div className="bg-white rounded-2xl p-8 text-center">
-                <Plus className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                <p className="text-slate-500">No new leads</p>
+          {!hasLeads ? (
+            <div className="flex min-h-[65vh] items-center justify-center">
+              <div className="w-full rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+                <Home className="mx-auto mb-4 h-12 w-12 text-slate-300" />
+                <h2 className="text-2xl font-bold text-slate-900">Welcome to Deal Mentor</h2>
+                <p className="mt-2 text-sm text-slate-500">You have no leads yet. Add your first lead to begin.</p>
                 <Link to={createPageUrl("AddLead")}>
-                  <Button className="mt-4 bg-slate-900">Add Your First Lead</Button>
+                  <Button className="mt-6 h-12 w-full rounded-2xl bg-slate-900 text-base font-semibold hover:bg-slate-800">
+                    <Plus className="mr-2 h-5 w-5" />
+                    Add Your First Lead
+                  </Button>
                 </Link>
               </div>
-            ) : (
-              newLeads.map((lead) => (
-                <LeadCard key={lead.id} lead={lead} />
-              ))
-            )}
-          </TabsContent>
-
-          <TabsContent value="map" className="mt-4">
-            <LeadsMapView leads={leads} statusFilter="All" />
-          </TabsContent>
-
-          <TabsContent value="pipeline" className="mt-4">
-            <PipelineView leads={leads} />
-          </TabsContent>
-        </Tabs>
-
-          {/* Quick Actions */}
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 p-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)" }}>
-            <div className="max-w-lg mx-auto">
-              <Link to={createPageUrl("AddLead")}>
-                <Button className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-lg font-semibold">
-                  <Plus className="w-5 h-5 mr-2" />
-                  Add New Lead
-                </Button>
-              </Link>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="mb-6 grid grid-cols-2 gap-3">
+                <StatsCard title="Active Leads" value={activeLeads.length} icon={Home} color="blue" />
+                <StatsCard title="Follow-ups Today" value={followupLeads.length} icon={Calendar} color="amber" />
+                <StatsCard title="New Leads" value={newLeads.length} icon={Plus} color="green" />
+                <StatsCard title="Responses" value={respondedLeads.length} icon={MessageSquare} color="purple" />
+              </div>
+
+              <div className="mb-6">
+                <TasksWidget />
+              </div>
+
+              <div className="mb-6">
+                <FinancialWidget />
+              </div>
+
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+                <TabsList className="w-full rounded-xl border border-slate-200 bg-white p-1 dark:border-slate-700 dark:bg-slate-800">
+                  <TabsTrigger value="followups" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">Follow-ups</TabsTrigger>
+                  <TabsTrigger value="new" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">New</TabsTrigger>
+                  <TabsTrigger value="map" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">Map</TabsTrigger>
+                  <TabsTrigger value="pipeline" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">Pipeline</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="followups" className="mt-4 space-y-3">
+                  {followupLeads.length === 0 ? (
+                    <div className="rounded-2xl bg-white p-8 text-center">
+                      <Calendar className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                      <p className="text-slate-500">No follow-ups due today</p>
+                      <p className="mt-1 text-sm text-slate-400">Great job staying on top of things.</p>
+                    </div>
+                  ) : (
+                    followupLeads.map((lead) => <LeadCard key={lead.id} lead={lead} showFollowup />)
+                  )}
+                </TabsContent>
+
+                <TabsContent value="new" className="mt-4 space-y-3">
+                  {newLeads.length === 0 ? (
+                    <div className="rounded-2xl bg-white p-8 text-center">
+                      <Plus className="mx-auto mb-3 h-12 w-12 text-slate-300" />
+                      <p className="text-slate-500">No new leads</p>
+                      <Link to={createPageUrl("AddLead")}>
+                        <Button className="mt-4 bg-slate-900">Add Your First Lead</Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    newLeads.map((lead) => <LeadCard key={lead.id} lead={lead} />)
+                  )}
+                </TabsContent>
+
+                <TabsContent value="map" className="mt-4">
+                  <LeadsMapView leads={leads} statusFilter="All" />
+                </TabsContent>
+
+                <TabsContent value="pipeline" className="mt-4">
+                  <PipelineView leads={leads} />
+                </TabsContent>
+              </Tabs>
+
+              <section className="mb-8">
+                <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Territory Map</h2>
+                <DashboardMapView />
+              </section>
+
+              <section>
+                <h2 className="mb-4 text-lg font-bold text-slate-900 dark:text-white">Follow-up Tasks</h2>
+                <TaskManager />
+              </section>
+            </>
+          )}
         </div>
       </PullToRefresh>
 
-      {/* Bulk Import Sheet */}
+      {hasLeads && (
+        <div className="fixed bottom-0 left-0 right-0 border-t border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 4rem)" }}>
+          <div className="mx-auto max-w-lg">
+            <Link to={createPageUrl("AddLead")}>
+              <Button className="h-14 w-full rounded-2xl bg-slate-900 text-lg font-semibold hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">
+                <Plus className="mr-2 h-5 w-5" />
+                Add New Lead
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
+
       <Sheet open={showBulkImport} onOpenChange={setShowBulkImport}>
-        <SheetContent side="bottom" className="rounded-t-3xl h-[85vh] overflow-y-auto">
+        <SheetContent side="bottom" className="h-[85vh] overflow-y-auto rounded-t-3xl">
           <SheetHeader>
             <SheetTitle>Bulk Import Leads</SheetTitle>
           </SheetHeader>
@@ -210,22 +202,6 @@ export default function Dashboard() {
           </div>
         </SheetContent>
       </Sheet>
-
-      {/* Map View Section */}
-      <section className="mt-8">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-          Territory Map
-        </h2>
-        <DashboardMapView />
-      </section>
-
-      {/* Task Manager Section */}
-      <section className="mt-8 mb-12">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-          Follow-up Tasks
-        </h2>
-        <TaskManager />
-      </section>
     </div>
   );
 }
