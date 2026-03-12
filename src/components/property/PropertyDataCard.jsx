@@ -24,6 +24,12 @@ export default function PropertyDataCard({ propertyData, onRefresh, isRefreshing
     }).format(value);
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -32,9 +38,9 @@ export default function PropertyDataCard({ propertyData, onRefresh, isRefreshing
           Property Data
         </h3>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500">
-            Updated {format(new Date(propertyData.fetched_date), "MMM d, yyyy")}
-          </span>
+           <span className="text-xs text-slate-500">
+             Updated {formatDate(propertyData.fetched_date) ? format(formatDate(propertyData.fetched_date), "MMM d, yyyy") : "N/A"}
+           </span>
           <Button
             variant="ghost"
             size="sm"
@@ -114,9 +120,9 @@ export default function PropertyDataCard({ propertyData, onRefresh, isRefreshing
             <p className="text-xs text-slate-500">Last Sale</p>
             <p className="text-sm font-semibold text-slate-700">
               {formatCurrency(propertyData.last_sale_price)}
-              {propertyData.last_sale_date && (
+              {propertyData.last_sale_date && formatDate(propertyData.last_sale_date) && (
                 <span className="text-xs font-normal text-slate-500 ml-2">
-                  ({format(new Date(propertyData.last_sale_date), "MMM yyyy")})
+                  ({format(formatDate(propertyData.last_sale_date), "MMM yyyy")})
                 </span>
               )}
             </p>
@@ -150,9 +156,9 @@ export default function PropertyDataCard({ propertyData, onRefresh, isRefreshing
                     </span>
                     <span>{comp.bedrooms}bd • {comp.bathrooms}ba • {comp.square_footage?.toLocaleString()} sqft</span>
                   </div>
-                  {comp.sale_date && (
+                  {comp.sale_date && formatDate(comp.sale_date) && (
                     <p className="text-slate-500 mt-1">
-                      Sold {format(new Date(comp.sale_date), "MMM yyyy")} • {comp.distance_miles} mi away
+                      Sold {format(formatDate(comp.sale_date), "MMM yyyy")} • {comp.distance_miles} mi away
                     </p>
                   )}
                 </div>
