@@ -36,6 +36,7 @@ import ActivityFeed from "@/components/leads/ActivityFeed";
 import ClosingChecklist from "@/components/contracts/ClosingChecklist";
 import DripCampaignManager from "@/components/email/DripCampaignManager";
 import DocumentManager from "@/components/documents/DocumentManager";
+import DocumentTemplateGenerator from "@/components/contracts/DocumentTemplateGenerator";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -462,7 +463,16 @@ export default function LeadDetail() {
             </TabsContent>
 
             <TabsContent value="docs" className="mt-0">
-              <DocumentManager leadId={leadId} lead={lead} owner={owners?.[0]} />
+              <div className="space-y-6">
+                <DocumentTemplateGenerator 
+                  lead={lead} 
+                  owner={owners?.[0]}
+                  onDocumentGenerated={() => {
+                    queryClient.invalidateQueries({ queryKey: ["contracts", leadId] });
+                  }}
+                />
+                <DocumentManager leadId={leadId} lead={lead} owner={owners?.[0]} />
+              </div>
             </TabsContent>
 
             <TabsContent value="offer" className="mt-0">
