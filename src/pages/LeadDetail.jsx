@@ -153,6 +153,17 @@ export default function LeadDetail() {
       });
       updates.next_followup_date = addDays(new Date(), 2).toISOString();
       queryClient.invalidateQueries({ queryKey: ["tasks", leadId] });
+
+      // Send automated SMS
+      try {
+        await base44.functions.invoke("sendSMS", {
+          lead_id: leadId,
+          template_key: "Offer Sent",
+        });
+        queryClient.invalidateQueries({ queryKey: ["messages", leadId] });
+      } catch (error) {
+        console.error("Failed to send automated SMS:", error);
+      }
     }
 
     if (newStatus === "Under Contract") {
@@ -184,6 +195,17 @@ export default function LeadDetail() {
       ]);
       updates.next_followup_date = addDays(new Date(), 1).toISOString();
       queryClient.invalidateQueries({ queryKey: ["tasks", leadId] });
+
+      // Send automated SMS
+      try {
+        await base44.functions.invoke("sendSMS", {
+          lead_id: leadId,
+          template_key: "Under Contract",
+        });
+        queryClient.invalidateQueries({ queryKey: ["messages", leadId] });
+      } catch (error) {
+        console.error("Failed to send automated SMS:", error);
+      }
     }
 
     updateLeadMutation.mutate(updates);
