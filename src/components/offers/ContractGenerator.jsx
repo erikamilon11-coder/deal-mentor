@@ -7,6 +7,8 @@ import { FileText, Download, Loader2, Calendar } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
+import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 
 export default function ContractGenerator({ lead, offer, owners, onContractCreated }) {
   const [closingDate, setClosingDate] = useState(
@@ -19,6 +21,14 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
 
   const primaryOwner = owners?.[0];
   const purchasePrice = offer?.offer_price || offer?.maximum_allowable_offer || 0;
+
+  // Fetch existing contracts for this lead
+  const { data: contracts } = useQuery({
+    queryKey: ["contracts", lead.id],
+    queryFn: () => base44.entities.Contract.filter({ lead_id: lead.id }),
+  });
+
+  const existingContract = contracts?.[0];
 
   const formatCurrency = (value) => {
     if (!value) return "$0";
@@ -271,6 +281,10 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
       <p className="text-xs text-slate-500 text-center">
         This generates a draft HTML document. Please review with an attorney before use.
       </p>
+
+      {existingContract && (
+        <ContractSignatureManager contract={existingContract} owner={primaryOwner} />
+      )}
     </div>
   );
 }
