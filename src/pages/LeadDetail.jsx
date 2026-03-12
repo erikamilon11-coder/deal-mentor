@@ -394,7 +394,7 @@ export default function LeadDetail() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-7" : "grid grid-cols-6"}`}>
+          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-8" : "grid grid-cols-7"}`}>
             <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-1" />
               Chat
@@ -410,6 +410,10 @@ export default function LeadDetail() {
             <TabsTrigger value="tasks" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calendar className="w-4 h-4 mr-1" />
               Tasks
+            </TabsTrigger>
+            <TabsTrigger value="docs" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <FileText className="w-4 h-4 mr-1" />
+              Docs
             </TabsTrigger>
             <TabsTrigger value="offer" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calculator className="w-4 h-4 mr-1" />
@@ -453,6 +457,10 @@ export default function LeadDetail() {
 
             <TabsContent value="tasks" className="mt-0">
               <TaskSection leadId={leadId} tasks={tasks} lead={lead} owner={owners?.[0]} />
+            </TabsContent>
+
+            <TabsContent value="docs" className="mt-0">
+              <DocumentManager leadId={leadId} />
             </TabsContent>
 
             <TabsContent value="offer" className="mt-0">
