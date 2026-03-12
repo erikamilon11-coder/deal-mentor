@@ -39,6 +39,7 @@ import DripCampaignManager from "@/components/email/DripCampaignManager";
 import DocumentManager from "@/components/documents/DocumentManager";
 import DocumentTemplateGenerator from "@/components/contracts/DocumentTemplateGenerator";
 import ExpenseTracker from "@/components/leads/ExpenseTracker";
+import PropertyDataCard from "@/components/property/PropertyDataCard";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -101,6 +102,12 @@ export default function LeadDetail() {
   const { data: contracts } = useQuery({
     queryKey: ["contracts", leadId],
     queryFn: () => base44.entities.Contract.filter({ lead_id: leadId }),
+    enabled: !!leadId,
+  });
+
+  const { data: propertyData, refetch: refetchPropertyData } = useQuery({
+    queryKey: ["propertyData", leadId],
+    queryFn: () => base44.entities.PropertyData.filter({ lead_id: leadId }).then(r => r[0]),
     enabled: !!leadId,
   });
 
@@ -487,6 +494,13 @@ export default function LeadDetail() {
 
             <TabsContent value="docs" className="mt-0">
               <div className="space-y-6">
+                {propertyData && (
+                  <PropertyDataCard
+                    propertyData={propertyData}
+                    onRefresh={() => refetchPropertyData()}
+                    isRefreshing={false}
+                  />
+                )}
                 <DocumentTemplateGenerator 
                   lead={lead} 
                   owner={owners?.[0]}
