@@ -80,7 +80,7 @@ export default function AnalyticsFilters({ onFilterChange, users }) {
             </div>
 
             {/* Agent Filter */}
-            <div>
+            <div className="hidden md:block">
               <Label className="text-xs text-slate-600 mb-1.5 flex items-center gap-1">
                 <Users className="w-3 h-3" />
                 Agent
@@ -101,7 +101,7 @@ export default function AnalyticsFilters({ onFilterChange, users }) {
             </div>
 
             {/* Lead Source Filter */}
-            <div>
+            <div className="hidden md:block">
               <Label className="text-xs text-slate-600 mb-1.5 flex items-center gap-1">
                 <Target className="w-3 h-3" />
                 Lead Source

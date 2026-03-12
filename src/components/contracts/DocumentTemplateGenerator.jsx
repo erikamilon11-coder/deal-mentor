@@ -329,7 +329,7 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
           <div>
             <Label>Select Template</Label>
             <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-              <SelectTrigger>
+              <SelectTrigger className="md:block">
                 <SelectValue placeholder="Choose a document template" />
               </SelectTrigger>
               <SelectContent>
@@ -420,7 +420,7 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
                       value={documentData.property_condition}
                       onValueChange={(value) => handleFieldChange("property_condition", value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="md:block">
                         <SelectValue placeholder="Select condition" />
                       </SelectTrigger>
                       <SelectContent>
@@ -476,7 +476,7 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
                       value={documentData.lead_paint_present}
                       onValueChange={(value) => handleFieldChange("lead_paint_present", value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="md:block">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -495,7 +495,7 @@ export default function DocumentTemplateGenerator({ lead, owner, onDocumentGener
                       value={documentData.reports_available}
                       onValueChange={(value) => handleFieldChange("reports_available", value)}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="md:block">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>

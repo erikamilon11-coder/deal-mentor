@@ -45,7 +45,7 @@ export default function TaskQuickAdd({ leads, onComplete, onCancel }) {
           value={taskData.lead_id}
           onValueChange={(value) => setTaskData({ ...taskData, lead_id: value })}
         >
-          <SelectTrigger>
+          <SelectTrigger className="md:block">
             <SelectValue placeholder="Select a lead" />
           </SelectTrigger>
           <SelectContent>
@@ -64,7 +64,7 @@ export default function TaskQuickAdd({ leads, onComplete, onCancel }) {
           value={taskData.task_type}
           onValueChange={(value) => setTaskData({ ...taskData, task_type: value })}
         >
-          <SelectTrigger>
+          <SelectTrigger className="md:block">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

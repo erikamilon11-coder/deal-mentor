@@ -123,7 +123,7 @@ export default function Leads() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32 h-12 rounded-xl bg-white">
+            <SelectTrigger className="w-32 h-12 rounded-xl bg-white md:block">
               <Filter className="w-4 h-4 mr-2 text-slate-400" />
               <SelectValue />
             </SelectTrigger>

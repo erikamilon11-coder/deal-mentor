@@ -419,14 +419,14 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
               setOfferOutcome(value);
               await base44.entities.Offer.update(existingOffer.id, { outcome: value });
               queryClient.invalidateQueries({ queryKey: ["offers", leadId] });
-              
+
               if (value === "Accepted" && onOfferAccepted) {
                 onOfferAccepted();
                 setShowContract(true);
               }
             }}
           >
-            <SelectTrigger className="h-12 rounded-xl">
+            <SelectTrigger className="h-12 rounded-xl md:block">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
