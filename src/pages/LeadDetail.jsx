@@ -462,7 +462,7 @@ export default function LeadDetail() {
             </TabsContent>
 
             <TabsContent value="docs" className="mt-0">
-              <DocumentManager leadId={leadId} />
+              <DocumentManager leadId={leadId} lead={lead} owner={owners?.[0]} />
             </TabsContent>
 
             <TabsContent value="offer" className="mt-0">
