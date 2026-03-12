@@ -44,6 +44,7 @@ import PropertyValuationCard from "@/components/property/PropertyValuationCard";
 import InvestmentCriteriaManager from "@/components/offers/InvestmentCriteriaManager";
 import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 import CallLogger from "@/components/calls/CallLogger";
+import MarketingContentGenerator from "@/components/marketing/MarketingContentGenerator";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -516,6 +517,7 @@ export default function LeadDetail() {
 
             <TabsContent value="docs" className="mt-0">
               <div className="space-y-6">
+                <MarketingContentGenerator leadId={leadId} lead={lead} />
                 <PropertyValuationCard
                   lead={lead}
                   propertyData={propertyData}
