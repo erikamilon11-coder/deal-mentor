@@ -2,11 +2,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Phone, Mail, Send, ArrowDown, ArrowUp } from "lucide-react";
+import { MessageSquare, Phone, Mail, Send, ArrowDown, ArrowUp, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import EmailComposer from "./EmailComposer";
+import SMSAutomation from "@/components/sms/SMSAutomation";
 
 const channelIcons = {
   SMS: MessageSquare,
@@ -24,6 +25,7 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
   const [newMessage, setNewMessage] = useState("");
   const [channel, setChannel] = useState("SMS");
   const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [showAutomations, setShowAutomations] = useState(false);
   const queryClient = useQueryClient();
 
   const sendMessageMutation = useMutation({
@@ -60,16 +62,33 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
           <MessageSquare className="w-4 h-4" />
           Communication
         </h3>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowEmailComposer(!showEmailComposer)}
-          className="rounded-lg"
-        >
-          <Mail className="w-3 h-3 mr-1" />
-          {showEmailComposer ? "Quick Log" : "Send Email"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAutomations(!showAutomations)}
+            className="rounded-lg"
+          >
+            <Zap className="w-3 h-3 mr-1" />
+            {showAutomations ? "Hide" : "SMS Auto"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEmailComposer(!showEmailComposer)}
+            className="rounded-lg"
+          >
+            <Mail className="w-3 h-3 mr-1" />
+            {showEmailComposer ? "Quick Log" : "Send Email"}
+          </Button>
+        </div>
       </div>
+
+      {showAutomations && (
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-4">
+          <SMSAutomation />
+        </div>
+      )}
 
       {showEmailComposer ? (
         <EmailComposer
