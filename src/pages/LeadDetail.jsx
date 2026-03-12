@@ -46,6 +46,7 @@ import ContractSignatureManager from "@/components/contracts/ContractSignatureMa
 import CallLogger from "@/components/calls/CallLogger";
 import MarketingContentGenerator from "@/components/marketing/MarketingContentGenerator";
 import PurchaseOfferGenerator from "@/components/contracts/PurchaseOfferGenerator";
+import InspectionTool from "@/components/inspections/InspectionTool";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -518,6 +519,11 @@ export default function LeadDetail() {
 
             <TabsContent value="docs" className="mt-0">
               <div className="space-y-6">
+                <InspectionTool
+                  leadId={leadId}
+                  lead={lead}
+                  propertyData={propertyData}
+                />
                 <PurchaseOfferGenerator
                   leadId={leadId}
                   lead={lead}
