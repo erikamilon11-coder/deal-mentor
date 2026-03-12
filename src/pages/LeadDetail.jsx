@@ -42,6 +42,7 @@ import ExpenseTracker from "@/components/leads/ExpenseTracker";
 import PropertyDataCard from "@/components/property/PropertyDataCard";
 import PropertyValuationCard from "@/components/property/PropertyValuationCard";
 import InvestmentCriteriaManager from "@/components/offers/InvestmentCriteriaManager";
+import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 

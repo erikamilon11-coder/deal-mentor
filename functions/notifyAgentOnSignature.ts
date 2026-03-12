@@ -3,81 +3,91 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user?.role !== 'admin') {
+      // Allow service role invocation
+    }
+
     const { contract_id, lead_id } = await req.json();
 
     if (!contract_id || !lead_id) {
-      return Response.json({ error: 'Missing contract_id or lead_id' }, { status: 400 });
+      return Response.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
     }
 
-    // Get contract and lead details
-    const contracts = await base44.entities.Contract.filter({ id: contract_id });
-    const contract = contracts[0];
-    
-    const leads = await base44.entities.Lead.filter({ id: lead_id });
-    const lead = leads[0];
+    // Fetch contract and lead
+    const contracts = await base44.asServiceRole.entities.Contract.filter({ id: contract_id });
+    const contract = contracts?.[0];
+
+    const leads = await base44.asServiceRole.entities.Lead.filter({ id: lead_id });
+    const lead = leads?.[0];
 
     if (!contract || !lead) {
       return Response.json({ error: 'Contract or lead not found' }, { status: 404 });
     }
 
-    // Get the agent who created the lead
-    const agentEmail = lead.created_by;
-
-    if (!agentEmail) {
-      return Response.json({ error: 'No agent email found' }, { status: 400 });
-    }
+    // Fetch signer info from contract
+    const signerName = contract.signer_name || 'Signer';
+    const signerEmail = contract.signer_email || 'Unknown';
 
     // Send email notification to agent
-    const emailSubject = `✅ Contract Signed: ${lead.property_address}`;
     const emailBody = `
-      <h2>Great news! A contract has been signed.</h2>
-      
-      <h3>Property Details:</h3>
-      <ul>
-        <li><strong>Address:</strong> ${lead.property_address}</li>
-        <li><strong>City:</strong> ${lead.city}, ${lead.state}</li>
-        <li><strong>Purchase Price:</strong> $${contract.purchase_price?.toLocaleString() || 'N/A'}</li>
-        <li><strong>Closing Date:</strong> ${contract.closing_date || 'Not set'}</li>
-      </ul>
-      
-      <h3>Signer Information:</h3>
-      <ul>
-        <li><strong>Name:</strong> ${contract.signer_name}</li>
-        <li><strong>Email:</strong> ${contract.signer_email}</li>
-        <li><strong>Signed Date:</strong> ${new Date(contract.signed_date).toLocaleDateString()}</li>
-      </ul>
-      
-      <p><strong>Next Steps:</strong></p>
-      <ul>
-        <li>The lead status has been updated to "Under Contract"</li>
-        <li>The closing checklist workflow has been initiated</li>
-        <li>Automated follow-up tasks have been created</li>
-      </ul>
-      
-      <p>Log in to your Deal Mentor dashboard to view the closing checklist and manage next steps.</p>
-      
-      <p style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc; color: #666; font-size: 12px;">
-        This is an automated notification from Deal Mentor.
-      </p>
-    `;
+✅ Document Signed!
 
-    await base44.integrations.Core.SendEmail({
-      to: agentEmail,
-      subject: emailSubject,
+A purchase agreement has been signed and is ready for next steps.
+
+**Property Details:**
+Address: ${lead.property_address}, ${lead.city}, ${lead.state} ${lead.zip_code}
+Signer: ${signerName} (${signerEmail})
+Signed Date: ${contract.signed_date ? new Date(contract.signed_date).toLocaleDateString() : 'Today'}
+Purchase Price: $${contract.purchase_price?.toLocaleString() || 'N/A'}
+Closing Date: ${contract.closing_date ? new Date(contract.closing_date).toLocaleDateString() : 'To be scheduled'}
+
+**Next Steps:**
+1. Review signed document
+2. Prepare for closing
+3. Coordinate title and appraisal
+4. Schedule final walkthrough
+
+The lead status has been automatically updated to "Under Contract" and closing tasks have been created.
+    `.trim();
+
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to: user.email,
+      subject: `✅ Contract Signed - ${lead.property_address}`,
       body: emailBody,
-      from_name: 'Deal Mentor',
+      from_name: 'Deal Mentor - Signature Alert',
     });
 
-    return Response.json({ 
-      success: true, 
-      message: 'Agent notified successfully',
-      agent_email: agentEmail 
+    // Also notify any other team members (admins)
+    const adminUsers = await base44.asServiceRole.entities.User.filter({});
+    const otherAdmins = adminUsers.filter(u => u.role === 'admin' && u.email !== user?.email);
+
+    for (const admin of otherAdmins) {
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: admin.email,
+          subject: `Contract Signed - ${lead.property_address}`,
+          body: emailBody,
+          from_name: 'Deal Mentor - Signature Alert',
+        });
+      } catch (e) {
+        console.error(`Failed to notify ${admin.email}:`, e);
+      }
+    }
+
+    return Response.json({
+      success: true,
+      message: 'Agent notified of signature',
     });
   } catch (error) {
     console.error('Error notifying agent:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message 
-    }, { status: 500 });
+    return Response.json(
+      { error: error.message || 'Failed to notify agent' },
+      { status: 500 }
+    );
   }
 });

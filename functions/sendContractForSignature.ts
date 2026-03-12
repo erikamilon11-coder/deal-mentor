@@ -9,56 +9,114 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { lead_id, signer_email, signer_name, document_url, document_title } = await req.json();
+    const { contract_id, signer_email, signer_name, pdf_url } = await req.json();
 
-    if (!lead_id || !signer_email || !document_url) {
+    if (!contract_id || !signer_email || !pdf_url) {
       return Response.json(
-        { error: 'Missing required fields: lead_id, signer_email, document_url' },
+        { error: 'Missing required fields: contract_id, signer_email, pdf_url' },
         { status: 400 }
       );
     }
 
-    // Fetch lead data for email context
-    const leads = await base44.entities.Lead.filter({ id: lead_id });
-    const lead = leads?.[0];
+    // Fetch contract and lead
+    const contracts = await base44.entities.Contract.filter({ id: contract_id });
+    const contract = contracts?.[0];
 
-    if (!lead) {
-      return Response.json({ error: 'Lead not found' }, { status: 404 });
+    if (!contract) {
+      return Response.json({ error: 'Contract not found' }, { status: 404 });
     }
 
-    // Send email with signing link
-    const emailBody = `
-Dear ${signer_name || 'there'},
+    const leads = await base44.entities.Lead.filter({ id: contract.lead_id });
+    const lead = leads?.[0];
 
-A contract document requires your signature: ${document_title}
+    // Fetch PDF file content
+    const pdfResponse = await fetch(pdf_url);
+    if (!pdfResponse.ok) {
+      throw new Error('Failed to fetch PDF for signing');
+    }
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfBuffer)));
 
-Property: ${lead.property_address}, ${lead.city}, ${lead.state} ${lead.zip_code}
+    // Create DocuSign envelope
+    const docusignBaseUrl = Deno.env.get('DOCUSIGN_BASE_URL') || 'https://demo.docusign.net/restapi';
+    const accountId = Deno.env.get('DOCUSIGN_ACCOUNT_ID');
+    const apiKey = Deno.env.get('DOCUSIGN_API_KEY');
 
-Please review and sign the document by clicking the link below:
-${document_url}
+    if (!accountId || !apiKey) {
+      throw new Error('DocuSign credentials not configured');
+    }
 
-This document is ready for your review and signature.
+    const envelopeData = {
+      emailSubject: `Purchase Agreement Signature Required - ${lead?.property_address || 'Property'}`,
+      documents: [
+        {
+          documentBase64: base64Pdf,
+          name: 'Purchase_Agreement.pdf',
+          fileExtension: 'pdf',
+          documentId: '1',
+        },
+      ],
+      recipients: {
+        signers: [
+          {
+            email: signer_email,
+            name: signer_name || 'Signer',
+            recipientId: '1',
+            routingOrder: '1',
+            tabs: {
+              signHereTabs: [
+                {
+                  pageNumber: '1',
+                  xPosition: '100',
+                  yPosition: '100',
+                },
+              ],
+            },
+          },
+        ],
+      },
+      status: 'sent',
+    };
 
-Best regards,
-${user.full_name || 'Your Agent'}
-    `.trim();
+    const docusignResponse = await fetch(
+      `${docusignBaseUrl}/v2.1/accounts/${accountId}/envelopes`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(envelopeData),
+      }
+    );
 
-    await base44.integrations.Core.SendEmail({
-      to: signer_email,
-      subject: `Document Signing Required: ${document_title}`,
-      body: emailBody,
-      from_name: user.full_name || 'Deal Mentor',
+    if (!docusignResponse.ok) {
+      const error = await docusignResponse.text();
+      console.error('DocuSign API error:', error);
+      throw new Error(`DocuSign API error: ${docusignResponse.status}`);
+    }
+
+    const envelopeResponse = await docusignResponse.json();
+    const envelopeId = envelopeResponse.envelopeId;
+
+    // Update contract with DocuSign envelope ID
+    await base44.entities.Contract.update(contract_id, {
+      docusign_envelope_id: envelopeId,
+      docusign_status: 'sent',
+      signer_email,
+      signer_name,
+      sent_date: new Date().toISOString(),
     });
 
     return Response.json({
       success: true,
-      message: 'Contract sent successfully',
-      envelope_id: null, // Can be used for tracking if implementing DocuSign
+      message: 'Contract sent for signature via DocuSign',
+      envelope_id: envelopeId,
     });
   } catch (error) {
-    console.error('Error sending contract:', error);
+    console.error('Error sending contract for signature:', error);
     return Response.json(
-      { error: error.message || 'Failed to send contract' },
+      { error: error.message || 'Failed to send contract for signature' },
       { status: 500 }
     );
   }
