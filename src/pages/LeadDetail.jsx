@@ -23,6 +23,7 @@ import {
   ClipboardCheck,
   Mail,
   FileText,
+  DollarSign,
 } from "lucide-react";
 import { addDays } from "date-fns";
 
@@ -37,6 +38,7 @@ import ClosingChecklist from "@/components/contracts/ClosingChecklist";
 import DripCampaignManager from "@/components/email/DripCampaignManager";
 import DocumentManager from "@/components/documents/DocumentManager";
 import DocumentTemplateGenerator from "@/components/contracts/DocumentTemplateGenerator";
+import ExpenseTracker from "@/components/leads/ExpenseTracker";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -414,7 +416,7 @@ export default function LeadDetail() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-8" : "grid grid-cols-7"}`}>
+          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-9" : "grid grid-cols-8"}`}>
             <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-1" />
               Chat
@@ -438,6 +440,10 @@ export default function LeadDetail() {
             <TabsTrigger value="offer" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calculator className="w-4 h-4 mr-1" />
               Offer
+            </TabsTrigger>
+            <TabsTrigger value="expenses" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <DollarSign className="w-4 h-4 mr-1" />
+              Costs
             </TabsTrigger>
             {lead.status === "Under Contract" && (
               <TabsTrigger value="checklist" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
@@ -507,6 +513,10 @@ export default function LeadDetail() {
                   handleStatusChange("Under Contract");
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="expenses" className="mt-0">
+              <ExpenseTracker leadId={leadId} />
             </TabsContent>
 
             <TabsContent value="activity" className="mt-0">
