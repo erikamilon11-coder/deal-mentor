@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import MobileSelect from "@/components/leads/MobileSelect";
 import {
   ArrowLeft,
   MapPin,
@@ -117,6 +117,25 @@ export default function LeadDetail() {
       queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       setShowEdit(false);
+    },
+  });
+
+  const createMessageMutation = useMutation({
+    mutationFn: (messageData) => base44.entities.Message.create(messageData),
+    onMutate: async (newMessage) => {
+      await queryClient.cancelQueries({ queryKey: ["messages", leadId] });
+      const previousMessages = queryClient.getQueryData(["messages", leadId]) || [];
+      queryClient.setQueryData(["messages", leadId], (old) => [
+        ...(old || []),
+        { ...newMessage, id: `temp-${Date.now()}`, created_date: new Date().toISOString() }
+      ]);
+      return { previousMessages };
+    },
+    onError: (err, newMessage, context) => {
+      queryClient.setQueryData(["messages", leadId], context.previousMessages);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["messages", leadId] });
     },
   });
 
@@ -334,16 +353,14 @@ export default function LeadDetail() {
               <p className="text-xs text-slate-500 uppercase tracking-wide">Status</p>
               <Badge className={`mt-1 ${statusColors[lead.status]}`}>{lead.status}</Badge>
             </div>
-            <Select value={lead.status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="w-36 h-9 rounded-lg">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {STATUSES.map((status) => (
-                  <SelectItem key={status} value={status}>{status}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <MobileSelect
+              value={lead.status}
+              onValueChange={handleStatusChange}
+              options={STATUSES}
+              placeholder="Change Status"
+              label="Lead Status"
+              triggerClassName="w-36 h-9 rounded-lg"
+            />
           </div>
           {lead.distress_tags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-slate-100">
