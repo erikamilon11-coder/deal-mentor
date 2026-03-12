@@ -590,7 +590,19 @@ export default function LeadDetail() {
 
             {lead.status === "Under Contract" && (
               <TabsContent value="checklist" className="mt-0">
-                <ClosingChecklist leadId={leadId} contract={contracts?.[0]} />
+                <div className="space-y-4">
+                  {contracts?.[0] && (
+                    <ContractSignatureManager 
+                      contract={contracts[0]}
+                      lead={lead}
+                      onSignatureComplete={() => {
+                        queryClient.invalidateQueries({ queryKey: ["leads", leadId] });
+                        queryClient.invalidateQueries({ queryKey: ["contracts", leadId] });
+                      }}
+                    />
+                  )}
+                  <ClosingChecklist leadId={leadId} contract={contracts?.[0]} />
+                </div>
               </TabsContent>
             )}
           </div>
