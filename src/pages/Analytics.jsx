@@ -11,6 +11,7 @@ import ConversionFunnel from "@/components/analytics/ConversionFunnel";
 import ResponseTimeChart from "@/components/analytics/ResponseTimeChart";
 import RevenueProjections from "@/components/analytics/RevenueProjections";
 import AnalyticsFilters from "@/components/analytics/AnalyticsFilters";
+import ProfitabilityAnalyzer from "@/components/analytics/ProfitabilityAnalyzer";
 
 export default function Analytics() {
   const [timeframe, setTimeframe] = useState("30d");
@@ -198,6 +199,7 @@ export default function Analytics() {
             <TabsTrigger value="conversion">Conversion</TabsTrigger>
             <TabsTrigger value="response">Response Time</TabsTrigger>
             <TabsTrigger value="revenue">Revenue</TabsTrigger>
+            <TabsTrigger value="profitability">Profitability</TabsTrigger>
           </TabsList>
 
           <TabsContent value="performance">
@@ -214,6 +216,10 @@ export default function Analytics() {
 
           <TabsContent value="revenue">
             <RevenueProjections leads={filteredLeads} offers={filteredOffers} contracts={filteredContracts} />
+          </TabsContent>
+
+          <TabsContent value="profitability">
+            <ProfitabilityAnalyzer />
           </TabsContent>
         </Tabs>
       </div>
