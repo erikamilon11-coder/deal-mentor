@@ -25,6 +25,7 @@ export default function ContractSignatureManager({ contract, owner }) {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["contracts"] });
+      queryClient.invalidateQueries({ queryKey: ["contracts", contract.lead_id] });
     },
   });
 
