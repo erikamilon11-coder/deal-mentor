@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calculator, DollarSign, Save, TrendingDown, FileText, ChevronDown, ChevronUp, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Calculator, DollarSign, Save, TrendingDown, FileText, ChevronDown, ChevronUp, CheckCircle, XCircle, Clock, Database } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ContractGenerator from "./ContractGenerator";
+import PropertyDataCard from "@/components/property/PropertyDataCard";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, owners, onOfferAccepted }) {
   const [arv, setArv] = useState(existingOffer?.arv || "");
@@ -15,8 +16,38 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
   const [offerPrice, setOfferPrice] = useState(existingOffer?.offer_price || "");
   const [showContract, setShowContract] = useState(false);
   const [offerOutcome, setOfferOutcome] = useState(existingOffer?.outcome || "Pending");
+  const [showPropertyData, setShowPropertyData] = useState(false);
 
   const queryClient = useQueryClient();
+
+  const { data: propertyData, isLoading: propertyDataLoading } = useQuery({
+    queryKey: ["propertyData", leadId],
+    queryFn: () => base44.entities.PropertyData.filter({ lead_id: leadId }).then(r => r[0]),
+    enabled: !!leadId,
+  });
+
+  const fetchPropertyDataMutation = useMutation({
+    mutationFn: async () => {
+      return base44.functions.invoke("fetchPropertyData", {
+        lead_id: leadId,
+        property_address: lead.property_address,
+        city: lead.city,
+        state: lead.state,
+        zip_code: lead.zip_code,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["propertyData", leadId] });
+      setShowPropertyData(true);
+    },
+  });
+
+  // Auto-populate ARV from property data if available
+  useEffect(() => {
+    if (propertyData?.estimated_value && !arv) {
+      setArv(propertyData.estimated_value);
+    }
+  }, [propertyData]);
 
   // Calculate MAO: (ARV * 0.70) - Repairs - Assignment Fee
   const mao = arv && repairs 
@@ -59,15 +90,77 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Calculator className="w-5 h-5 text-slate-700" />
-        <h3 className="font-semibold text-slate-900">Offer Calculator</h3>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calculator className="w-5 h-5 text-slate-700" />
+          <h3 className="font-semibold text-slate-900">Offer Calculator</h3>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchPropertyDataMutation.mutate()}
+          disabled={fetchPropertyDataMutation.isPending || propertyDataLoading}
+          className="h-9 rounded-lg"
+        >
+          {fetchPropertyDataMutation.isPending ? (
+            <>
+              <Database className="w-3 h-3 mr-1 animate-pulse" />
+              Fetching...
+            </>
+          ) : propertyData ? (
+            <>
+              <Database className="w-3 h-3 mr-1" />
+              Refresh Data
+            </>
+          ) : (
+            <>
+              <Database className="w-3 h-3 mr-1" />
+              Get Property Data
+            </>
+          )}
+        </Button>
       </div>
+
+      {/* Property Data Section */}
+      {propertyData && (
+        <div>
+          <Button
+            variant="ghost"
+            onClick={() => setShowPropertyData(!showPropertyData)}
+            className="w-full justify-between h-auto py-2 px-3 rounded-xl hover:bg-slate-50"
+          >
+            <span className="text-sm font-medium text-slate-700">Property Research Data</span>
+            {showPropertyData ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+          {showPropertyData && (
+            <div className="mt-3">
+              <PropertyDataCard
+                propertyData={propertyData}
+                onRefresh={() => fetchPropertyDataMutation.mutate()}
+                isRefreshing={fetchPropertyDataMutation.isPending}
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {fetchPropertyDataMutation.isSuccess && !propertyData && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700">
+          Property data fetched! ARV has been auto-filled with estimated value.
+        </div>
+      )}
 
       <div className="space-y-4">
         <div>
-          <Label className="text-slate-700">After Repair Value (ARV)</Label>
-          <div className="relative mt-1.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <Label className="text-slate-700">After Repair Value (ARV)</Label>
+            {propertyData?.estimated_value && (
+              <span className="text-xs text-emerald-600">
+                ✓ Auto-filled from data
+              </span>
+            )}
+          </div>
+          <div className="relative">
             <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
               type="number"
@@ -77,6 +170,11 @@ export default function OfferCalculator({ leadId, existingOffer, onSaved, lead, 
               placeholder="200000"
             />
           </div>
+          {propertyData?.estimated_value && (
+            <p className="text-xs text-slate-500 mt-1">
+              Suggested from property data: {formatCurrency(propertyData.estimated_value)}
+            </p>
+          )}
         </div>
 
         <div>
