@@ -114,7 +114,10 @@ export default function OwnerSection({ leadId, owners, phones, lead }) {
       )}
 
       {owners?.length === 0 && !showAddOwner && (
-        <p className="text-sm text-slate-500 py-4 text-center">No owners added yet</p>
+        <div className="space-y-4">
+          <p className="text-sm text-slate-500 py-4 text-center">No owners added yet</p>
+          <SkipTraceButton leadId={leadId} lead={lead} />
+        </div>
       )}
 
       {owners?.map((owner) => (
@@ -215,10 +218,7 @@ export default function OwnerSection({ leadId, owners, phones, lead }) {
             )}
           </div>
 
-          {/* Skip Trace Button */}
-          <div className="mt-3 pt-3 border-t border-slate-100">
-            <SkipTraceButton owner={owner} lead={lead} />
-          </div>
+
         </div>
       ))}
     </div>
