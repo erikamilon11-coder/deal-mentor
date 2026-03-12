@@ -54,9 +54,20 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.Task.bulkCreate(tasksToCreate);
 
+    // Send notification to agent
+    try {
+      await base44.asServiceRole.functions.invoke('notifyAgentOnSignature', {
+        contract_id: contract.id,
+        lead_id: contract.lead_id,
+      });
+    } catch (notificationError) {
+      console.error('Failed to send notification:', notificationError);
+      // Continue even if notification fails
+    }
+
     return Response.json({
       success: true,
-      message: 'Lead updated and closing tasks created',
+      message: 'Lead updated, closing tasks created, and agent notified',
     });
 
   } catch (error) {
