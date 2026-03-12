@@ -61,6 +61,7 @@ import Settings from './pages/Settings';
 import SignContract from './pages/SignContract';
 import SignatureSuccess from './pages/SignatureSuccess';
 import TaskBoard from './pages/TaskBoard';
+import EmailMarketing from './pages/EmailMarketing';
 import __Layout from './Layout.jsx';
 
 
@@ -79,6 +80,7 @@ export const PAGES = {
     "SignContract": SignContract,
     "SignatureSuccess": SignatureSuccess,
     "TaskBoard": TaskBoard,
+    "EmailMarketing": EmailMarketing,
 }
 
 export const pagesConfig = {
