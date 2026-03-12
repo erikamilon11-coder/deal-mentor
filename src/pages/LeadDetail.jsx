@@ -89,7 +89,16 @@ export default function LeadDetail() {
 
   const updateLeadMutation = useMutation({
     mutationFn: (data) => base44.entities.Lead.update(leadId, data),
-    onSuccess: () => {
+    onMutate: async (updatedData) => {
+      await queryClient.cancelQueries({ queryKey: ["lead", leadId] });
+      const previousLead = queryClient.getQueryData(["lead", leadId]);
+      queryClient.setQueryData(["lead", leadId], (old) => ({ ...old, ...updatedData }));
+      return { previousLead };
+    },
+    onError: (err, updatedData, context) => {
+      queryClient.setQueryData(["lead", leadId], context.previousLead);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       setShowEdit(false);
@@ -222,8 +231,8 @@ export default function LeadDetail() {
   const latestOffer = offers?.sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-lg mx-auto px-4 pb-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-lg mx-auto px-4 pb-8" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
         {/* Header */}
         <div className="pt-6 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">

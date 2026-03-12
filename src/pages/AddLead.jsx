@@ -23,8 +23,8 @@ export default function AddLead() {
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-lg mx-auto px-4 pb-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-lg mx-auto px-4 pb-8" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
         {/* Header */}
         <div className="pt-6 pb-4 flex items-center gap-3">
           <Button
