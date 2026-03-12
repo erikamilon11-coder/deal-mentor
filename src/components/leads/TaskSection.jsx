@@ -7,10 +7,12 @@ import { Calendar, Plus, Check, X, Clock, Zap } from "lucide-react";
 import { format, isToday, isTomorrow, isPast, addDays } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import CalendarSync from "@/components/calendar/CalendarSync";
 
 const TASK_TYPES = ["Follow-up Text", "Call", "Appointment"];
 
-export default function TaskSection({ leadId, tasks }) {
+export default function TaskSection({ leadId, tasks, lead, owner }) {
+  const [showCalendarSync, setShowCalendarSync] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [newTask, setNewTask] = useState({
     task_type: "Follow-up Text",
@@ -63,16 +65,33 @@ export default function TaskSection({ leadId, tasks }) {
           <Calendar className="w-4 h-4" />
           Tasks
         </h3>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowAdd(true)}
-          className="text-slate-600"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Add
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCalendarSync(!showCalendarSync)}
+            className="rounded-lg"
+          >
+            <Calendar className="w-3 h-3 mr-1" />
+            {showCalendarSync ? "Hide" : "Schedule"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAdd(true)}
+            className="text-slate-600"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Add
+          </Button>
+        </div>
       </div>
+
+      {showCalendarSync && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4">
+          <CalendarSync lead={lead} owner={owner} />
+        </div>
+      )}
 
       {showAdd && (
         <div className="bg-slate-50 rounded-xl p-4 space-y-3">
