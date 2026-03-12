@@ -9,6 +9,7 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
+import jsPDF from "jspdf";
 
 export default function ContractGenerator({ lead, offer, owners, onContractCreated }) {
   const [closingDate, setClosingDate] = useState(
@@ -39,13 +40,233 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
     }).format(value);
   };
 
-  const generateContractHTML = () => {
+  const generateContractPDF = () => {
+    const doc = new jsPDF();
     const today = format(new Date(), "MMMM d, yyyy");
     const formattedClosing = format(new Date(closingDate), "MMMM d, yyyy");
     const formattedPrice = formatCurrency(purchasePrice);
     const earnestMoney = formatCurrency(Math.min(purchasePrice * 0.01, 1000));
+    const balanceDue = formatCurrency(purchasePrice - Math.min(purchasePrice * 0.01, 1000));
 
-    return `
+    let y = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const leftMargin = 20;
+    const rightMargin = pageWidth - 20;
+    const lineHeight = 7;
+
+    // Title
+    doc.setFontSize(18);
+    doc.setFont("helvetica", "bold");
+    doc.text("REAL ESTATE PURCHASE AGREEMENT", pageWidth / 2, y, { align: "center" });
+    
+    y += 15;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date: ${today}`, pageWidth / 2, y, { align: "center" });
+    y += 5;
+    doc.text(`Contract Reference: ${lead.id?.slice(0, 8).toUpperCase() || "DRAFT"}`, pageWidth / 2, y, { align: "center" });
+    
+    y += 15;
+
+    // Section: PARTIES
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("PARTIES", leftMargin, y);
+    y += lineHeight;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("SELLER:", leftMargin, y);
+    y += lineHeight;
+    doc.setFont("helvetica", "normal");
+    doc.text(primaryOwner?.owner_name || "[SELLER NAME]", leftMargin + 5, y);
+    y += lineHeight;
+    doc.text(`Address: ${primaryOwner?.mailing_address || "[SELLER ADDRESS]"}`, leftMargin + 5, y);
+    
+    y += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("BUYER:", leftMargin, y);
+    y += lineHeight;
+    doc.setFont("helvetica", "normal");
+    doc.text("[BUYER NAME AND/OR ASSIGNS]", leftMargin + 5, y);
+    
+    y += 15;
+
+    // Section: PROPERTY DESCRIPTION
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("PROPERTY DESCRIPTION", leftMargin, y);
+    y += lineHeight;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Property Address:`, leftMargin, y);
+    y += lineHeight;
+    doc.text(lead.property_address, leftMargin + 5, y);
+    y += lineHeight;
+    doc.text(`${lead.city}, ${lead.state} ${lead.zip_code}`, leftMargin + 5, y);
+    y += lineHeight;
+    const propertyDesc = "Together with all improvements, fixtures, and appurtenances thereto.";
+    const wrappedDesc = doc.splitTextToSize(propertyDesc, rightMargin - leftMargin);
+    doc.text(wrappedDesc, leftMargin, y);
+    y += wrappedDesc.length * lineHeight;
+    
+    y += 10;
+
+    // Section: PURCHASE PRICE AND TERMS
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("PURCHASE PRICE AND TERMS", leftMargin, y);
+    y += lineHeight;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Purchase Price: ${formattedPrice}`, leftMargin, y);
+    y += lineHeight;
+    doc.text(`Earnest Money Deposit: ${earnestMoney}`, leftMargin, y);
+    y += lineHeight;
+    doc.setFontSize(8);
+    doc.text("(To be deposited with Title Company within 3 business days of executed contract)", leftMargin + 5, y);
+    y += lineHeight;
+    doc.setFontSize(10);
+    doc.text(`Balance Due at Closing: ${balanceDue}`, leftMargin, y);
+    
+    y += 15;
+
+    // Section: CLOSING
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("CLOSING", leftMargin, y);
+    y += lineHeight;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Closing Date: ${formattedClosing}`, leftMargin, y);
+    y += lineHeight;
+    doc.text("Or sooner by mutual agreement of both parties.", leftMargin, y);
+    y += lineHeight;
+    doc.text("Title Company: [TO BE DETERMINED]", leftMargin, y);
+    
+    y += 15;
+
+    // Check if we need a new page
+    if (y > 250) {
+      doc.addPage();
+      y = 20;
+    }
+
+    // Section: TERMS AND CONDITIONS
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("TERMS AND CONDITIONS", leftMargin, y);
+    y += lineHeight + 2;
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    
+    const terms = [
+      "Assignment: Buyer shall have the right to assign this contract to a third party without Seller's consent. Upon assignment, Buyer shall be released from all obligations hereunder.",
+      "Inspection Period: Buyer shall have fourteen (14) days from the effective date of this contract to conduct inspections. Buyer may terminate this contract for any reason during the inspection period.",
+      "Title: Seller agrees to convey marketable title by General Warranty Deed, free and clear of all liens and encumbrances except current taxes and recorded easements.",
+      "Possession: Seller shall deliver possession of the property to Buyer at closing.",
+      "Property Condition: Property is being sold \"AS-IS, WHERE-IS\" with no warranties expressed or implied.",
+      "Closing Costs: Each party shall pay their customary closing costs. Seller to pay for title insurance policy.",
+      "Default: If Buyer defaults, Seller's sole remedy shall be retention of earnest money as liquidated damages. If Seller defaults, Buyer may seek specific performance or return of earnest money.",
+    ];
+
+    terms.forEach((term, index) => {
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFont("helvetica", "bold");
+      doc.text(`${index + 1}.`, leftMargin, y);
+      doc.setFont("helvetica", "normal");
+      const wrapped = doc.splitTextToSize(term, rightMargin - leftMargin - 10);
+      doc.text(wrapped, leftMargin + 7, y);
+      y += wrapped.length * lineHeight + 3;
+    });
+
+    y += 10;
+
+    // Additional Terms if any
+    if (additionalTerms) {
+      if (y > 240) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("ADDITIONAL TERMS", leftMargin, y);
+      y += lineHeight;
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "normal");
+      const wrappedTerms = doc.splitTextToSize(additionalTerms, rightMargin - leftMargin);
+      doc.text(wrappedTerms, leftMargin, y);
+      y += wrappedTerms.length * lineHeight + 10;
+    }
+
+    // Section: ACCEPTANCE
+    if (y > 230) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("ACCEPTANCE", leftMargin, y);
+    y += lineHeight;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const acceptanceText = `This offer shall remain open for acceptance until ${format(addDays(new Date(), 3), "MMMM d, yyyy")} at 5:00 PM local time, after which it shall be null and void.`;
+    const wrappedAcceptance = doc.splitTextToSize(acceptanceText, rightMargin - leftMargin);
+    doc.text(wrappedAcceptance, leftMargin, y);
+    y += wrappedAcceptance.length * lineHeight + 20;
+
+    // Signature blocks
+    if (y > 220) {
+      doc.addPage();
+      y = 20;
+    }
+    
+    const sigWidth = 70;
+    const leftSigX = leftMargin;
+    const rightSigX = pageWidth - leftMargin - sigWidth;
+
+    // Seller signature
+    doc.line(leftSigX, y, leftSigX + sigWidth, y);
+    y += 5;
+    doc.setFontSize(9);
+    doc.text("SELLER Signature", leftSigX, y);
+    y += 4;
+    doc.text(primaryOwner?.owner_name || "[SELLER NAME]", leftSigX, y);
+    y += 4;
+    doc.text("Date: _____________", leftSigX, y);
+
+    // Buyer signature
+    y -= 13;
+    doc.line(rightSigX, y, rightSigX + sigWidth, y);
+    y += 5;
+    doc.text("BUYER Signature", rightSigX, y);
+    y += 4;
+    doc.text("[BUYER NAME]", rightSigX, y);
+    y += 4;
+    doc.text("Date: _____________", rightSigX, y);
+
+    y += 20;
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const footer1 = "This document was generated as a DRAFT for review purposes only.";
+    const footer2 = "Please consult with a licensed attorney before signing any legal documents.";
+    doc.text(footer1, pageWidth / 2, y, { align: "center" });
+    y += 4;
+    doc.text(footer2, pageWidth / 2, y, { align: "center" });
+
+    return doc;
+  };
+
+  const generateContractHTML = () => {
 <!DOCTYPE html>
 <html>
 <head>
@@ -176,11 +397,11 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
   const handleGenerateContract = async () => {
     setIsGenerating(true);
 
-    const htmlContent = generateContractHTML();
-    const blob = new Blob([htmlContent], { type: "text/html" });
-    const file = new File([blob], `contract-${lead.property_address.replace(/\s+/g, "-")}.html`, {
-      type: "text/html",
-    });
+    // Generate PDF
+    const pdf = generateContractPDF();
+    const pdfBlob = pdf.output("blob");
+    const fileName = `Purchase-Agreement-${lead.property_address.replace(/\s+/g, "-")}.pdf`;
+    const file = new File([pdfBlob], fileName, { type: "application/pdf" });
 
     // Upload the file
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -198,13 +419,7 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
     setIsGenerating(false);
 
     // Trigger download
-    const link = document.createElement("a");
-    link.href = file_url;
-    link.download = `contract-${lead.property_address.replace(/\s+/g, "-")}.html`;
-    link.target = "_blank";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    pdf.save(fileName);
 
     if (onContractCreated) onContractCreated(contract);
   };
@@ -279,7 +494,7 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
       </Button>
 
       <p className="text-xs text-slate-500 text-center">
-        This generates a draft HTML document. Please review with an attorney before use.
+        This generates a professional PDF document. Please review with an attorney before use.
       </p>
 
       {existingContract && (
