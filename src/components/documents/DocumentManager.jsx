@@ -17,10 +17,13 @@ import {
   X,
   Loader2,
   File,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FilePlus
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import DocumentGenerator from "./DocumentGenerator";
 
 const DOCUMENT_TYPES = [
   "Contract",
@@ -49,8 +52,9 @@ const getFileIcon = (fileName) => {
   return <File className="w-5 h-5 text-slate-600" />;
 };
 
-export default function DocumentManager({ leadId }) {
+export default function DocumentManager({ leadId, lead, owner }) {
   const [showUpload, setShowUpload] = useState(false);
+  const [showGenerator, setShowGenerator] = useState(false);
   const [uploadData, setUploadData] = useState({
     document_name: "",
     document_type: "Other",
@@ -143,24 +147,35 @@ export default function DocumentManager({ leadId }) {
             {documents.length} file{documents.length !== 1 ? 's' : ''}
           </p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowUpload(!showUpload)}
-          className="text-slate-600"
-        >
-          {showUpload ? (
-            <>
-              <X className="w-4 h-4 mr-1" />
-              Cancel
-            </>
-          ) : (
-            <>
-              <Plus className="w-4 h-4 mr-1" />
-              Upload
-            </>
-          )}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowGenerator(true)}
+            className="text-slate-600"
+          >
+            <FilePlus className="w-4 h-4 mr-1" />
+            Generate
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowUpload(!showUpload)}
+            className="text-slate-600"
+          >
+            {showUpload ? (
+              <>
+                <X className="w-4 h-4 mr-1" />
+                Cancel
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-1" />
+                Upload
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {showUpload && (
@@ -394,6 +409,21 @@ export default function DocumentManager({ leadId }) {
           </div>
         </div>
       )}
+
+      <Sheet open={showGenerator} onOpenChange={setShowGenerator}>
+        <SheetContent side="bottom" className="rounded-t-3xl h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Generate Document</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <DocumentGenerator
+              lead={lead}
+              owner={owner}
+              onComplete={() => setShowGenerator(false)}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
