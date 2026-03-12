@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { MessageSquare, Phone, Mail, Send, ArrowDown, ArrowUp, Zap } from "lucide-react";
+import { MessageSquare, Phone, Mail, Send, ArrowDown, ArrowUp, Zap, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import EmailComposer from "./EmailComposer";
 import SMSAutomation from "@/components/sms/SMSAutomation";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 const channelIcons = {
   SMS: MessageSquare,
@@ -26,7 +27,18 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
   const [channel, setChannel] = useState("SMS");
   const [showEmailComposer, setShowEmailComposer] = useState(false);
   const [showAutomations, setShowAutomations] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
   const queryClient = useQueryClient();
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['sms-templates'],
+    queryFn: () => base44.entities.SMSTemplate.list('-is_favorite', 50),
+  });
+
+  const updateTemplateUsageMutation = useMutation({
+    mutationFn: ({ id, usage_count }) => 
+      base44.entities.SMSTemplate.update(id, { usage_count: usage_count + 1 }),
+  });
 
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
@@ -48,6 +60,27 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
       channel,
       message_text: newMessage,
       message_timestamp: new Date().toISOString(),
+    });
+  };
+
+  const handleUseTemplate = (template) => {
+    let text = template.message_text;
+    
+    // Replace placeholders
+    if (lead?.property_address) {
+      text = text.replace(/\{property_address\}/g, lead.property_address);
+    }
+    if (owner?.owner_name) {
+      text = text.replace(/\{owner_name\}/g, owner.owner_name);
+    }
+    
+    setNewMessage(text);
+    setShowTemplates(false);
+    
+    // Update usage count
+    updateTemplateUsageMutation.mutate({
+      id: template.id,
+      usage_count: template.usage_count || 0
     });
   };
 
@@ -120,12 +153,25 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
               );
             })}
           </div>
-        <Textarea
-          placeholder={`Log ${channel} message...`}
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          className="min-h-[80px] rounded-lg resize-none"
-        />
+          <div className="relative">
+            <Textarea
+              placeholder={`Log ${channel} message...`}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="min-h-[80px] rounded-lg resize-none pr-10"
+            />
+            {channel === "SMS" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowTemplates(true)}
+                className="absolute top-2 right-2 h-8 w-8 text-slate-500 hover:text-slate-700"
+                title="Use Template"
+              >
+                <FileText className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
           <Button
             onClick={handleSend}
             disabled={!newMessage.trim() || sendMessageMutation.isPending}
@@ -136,6 +182,41 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
           </Button>
         </div>
       )}
+
+      <Sheet open={showTemplates} onOpenChange={setShowTemplates}>
+        <SheetContent side="bottom" className="rounded-t-3xl h-[70vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>SMS Templates</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-2 mt-4">
+            {templates.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <FileText className="w-10 h-10 mx-auto mb-2 text-slate-400" />
+                <p>No templates saved yet</p>
+                <p className="text-xs mt-1">Create templates in Settings</p>
+              </div>
+            ) : (
+              templates.map(template => (
+                <button
+                  key={template.id}
+                  onClick={() => handleUseTemplate(template)}
+                  className="w-full text-left p-4 bg-white border border-slate-200 rounded-xl hover:border-slate-300 hover:shadow-sm transition-all"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-slate-900">{template.template_name}</h4>
+                    <Badge className="text-xs bg-blue-100 text-blue-700">
+                      {template.category}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-slate-600 line-clamp-2">
+                    {template.message_text}
+                  </p>
+                </button>
+              ))
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <div className="space-y-3 max-h-[400px] overflow-y-auto">
         {sortedMessages.length === 0 && (
