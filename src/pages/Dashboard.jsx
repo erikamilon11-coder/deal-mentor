@@ -16,6 +16,7 @@ import PullToRefresh from "@/components/PullToRefresh";
 import LeadsMapView from "@/components/map/LeadsMapView";
 import BulkLeadImporter from "@/components/dashboard/BulkLeadImporter";
 import TasksWidget from "@/components/dashboard/TasksWidget";
+import FinancialWidget from "@/components/dashboard/FinancialWidget";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("followups");
@@ -113,6 +114,11 @@ export default function Dashboard() {
         {/* Tasks Widget */}
         <div className="mb-6">
           <TasksWidget />
+        </div>
+
+        {/* Financial Widget */}
+        <div className="mb-6">
+          <FinancialWidget />
         </div>
 
         {/* Tabs */}
