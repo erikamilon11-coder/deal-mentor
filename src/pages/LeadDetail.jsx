@@ -45,6 +45,7 @@ import InvestmentCriteriaManager from "@/components/offers/InvestmentCriteriaMan
 import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 import CallLogger from "@/components/calls/CallLogger";
 import MarketingContentGenerator from "@/components/marketing/MarketingContentGenerator";
+import PurchaseOfferGenerator from "@/components/contracts/PurchaseOfferGenerator";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -517,6 +518,13 @@ export default function LeadDetail() {
 
             <TabsContent value="docs" className="mt-0">
               <div className="space-y-6">
+                <PurchaseOfferGenerator
+                  leadId={leadId}
+                  lead={lead}
+                  owner={owners?.[0]}
+                  offer={offers?.[0]}
+                  propertyData={propertyData}
+                />
                 <MarketingContentGenerator leadId={leadId} lead={lead} />
                 <PropertyValuationCard
                   lead={lead}
