@@ -4,10 +4,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck, Calendar, DollarSign, FileText, CheckCircle2, Circle } from "lucide-react";
+import { ClipboardCheck, Calendar, DollarSign, FileText, CheckCircle2, Circle, FileSignature } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 
 const DEFAULT_CHECKLIST_ITEMS = [
   {
@@ -58,6 +59,14 @@ const DEFAULT_CHECKLIST_ITEMS = [
 export default function ClosingChecklist({ leadId, contract }) {
   const [checklistTasks, setChecklistTasks] = useState({});
   const queryClient = useQueryClient();
+
+  // Fetch owner for signature
+  const { data: owners } = useQuery({
+    queryKey: ["owners", leadId],
+    queryFn: () => base44.entities.Owner.filter({ lead_id: leadId }),
+  });
+
+  const primaryOwner = owners?.[0];
 
   const generateChecklistMutation = useMutation({
     mutationFn: async () => {
@@ -232,6 +241,17 @@ export default function ClosingChecklist({ leadId, contract }) {
           <p className="text-sm text-green-700 mt-1">
             You've completed all checklist items. Ready to close the deal!
           </p>
+        </div>
+      )}
+
+      {/* E-Signature Integration */}
+      {contract && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <FileSignature className="w-5 h-5 text-indigo-600" />
+            <h4 className="font-semibold text-slate-900">E-Signature</h4>
+          </div>
+          <ContractSignatureManager contract={contract} owner={primaryOwner} />
         </div>
       )}
     </div>
