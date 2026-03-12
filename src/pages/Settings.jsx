@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, User, Trash2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, User, Trash2, AlertTriangle, MessageSquare } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,6 +14,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import TemplateManager from "@/components/sms/TemplateManager";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -68,6 +69,19 @@ export default function Settings() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* SMS Templates Section */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-4">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              SMS Templates
+            </h2>
+          </div>
+          <div className="p-4">
+            <TemplateManager />
+          </div>
         </div>
 
         {/* Danger Zone */}
