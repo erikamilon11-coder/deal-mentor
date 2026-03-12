@@ -45,10 +45,24 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
       const message = await base44.entities.Message.create(data);
       return message;
     },
+    onMutate: async (newMessage) => {
+      await queryClient.cancelQueries({ queryKey: ["messages", leadId] });
+      const previousMessages = queryClient.getQueryData(["messages", leadId]) || [];
+      queryClient.setQueryData(["messages", leadId], (old) => [
+        ...(old || []),
+        { ...newMessage, id: `temp-${Date.now()}`, created_date: new Date().toISOString() }
+      ]);
+      return { previousMessages };
+    },
+    onError: (err, newMessage, context) => {
+      queryClient.setQueryData(["messages", leadId], context.previousMessages);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["messages", leadId] });
       setNewMessage("");
       if (onMessageSent) onMessageSent();
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["messages", leadId] });
     },
   });
 
@@ -218,7 +232,7 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
         </SheetContent>
       </Sheet>
 
-      <div className="space-y-3 max-h-[400px] overflow-y-auto">
+      <div className="space-y-3 max-h-[400px] overflow-y-auto" style={{ overscrollBehavior: "contain" }}>
         {sortedMessages.length === 0 && (
           <p className="text-sm text-slate-500 text-center py-6">No messages yet</p>
         )}
