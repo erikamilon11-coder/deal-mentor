@@ -19,6 +19,7 @@ import {
   Pencil,
   Trash2,
   Loader2,
+  Clock,
 } from "lucide-react";
 import { addDays } from "date-fns";
 
@@ -28,6 +29,7 @@ import MessageSection from "@/components/leads/MessageSection";
 import TaskSection from "@/components/leads/TaskSection";
 import OfferCalculator from "@/components/offers/OfferCalculator";
 import LeadForm from "@/components/leads/LeadForm";
+import ActivityFeed from "@/components/leads/ActivityFeed";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -84,6 +86,12 @@ export default function LeadDetail() {
   const { data: offers } = useQuery({
     queryKey: ["offers", leadId],
     queryFn: () => base44.entities.Offer.filter({ lead_id: leadId }),
+    enabled: !!leadId,
+  });
+
+  const { data: contracts } = useQuery({
+    queryKey: ["contracts", leadId],
+    queryFn: () => base44.entities.Contract.filter({ lead_id: leadId }),
     enabled: !!leadId,
   });
 
