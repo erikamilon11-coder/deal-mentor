@@ -1,13 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, List, Users, Settings as SettingsIcon, MapPin } from "lucide-react";
+import { Home, List, Users, Settings as SettingsIcon, MapPin, Zap } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import PageTransition from "@/components/PageTransition";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Track scroll positions for main tabs
 const scrollCache = new Map();
-const TAB_PAGES = ["Dashboard", "Leads", "MapView", "Buyers"];
+const TAB_PAGES = ["Dashboard", "Leads", "MapView", "Buyers", "Campaigns"];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -19,7 +19,7 @@ export default function Layout({ children, currentPageName }) {
     { name: "Dashboard", icon: Home, page: "Dashboard" },
     { name: "Leads", icon: List, page: "Leads" },
     { name: "Map", icon: MapPin, page: "MapView" },
-    { name: "Buyers", icon: Users, page: "Buyers" },
+    { name: "Campaigns", icon: Zap, page: "Campaigns" },
     { name: "Settings", icon: SettingsIcon, page: "Settings" },
   ];
 
