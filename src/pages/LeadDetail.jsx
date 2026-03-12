@@ -373,6 +373,8 @@ export default function LeadDetail() {
               <MessageSection
                 leadId={leadId}
                 messages={messages}
+                lead={lead}
+                owner={owners?.[0]}
                 onMessageSent={handleMessageSent}
               />
             </TabsContent>
