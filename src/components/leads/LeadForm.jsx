@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { X, Save, MapPin, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import MobileSelect from "@/components/leads/MobileSelect";
 
 const LEAD_SOURCES = ["Driving for Dollars", "List", "Referral", "Other"];
 const DISTRESS_TAGS = ["Vacant", "Overgrown", "Boarded", "FSBO", "Inherited", "Other"];
@@ -284,19 +284,14 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
 
         <div>
           <Label className="text-slate-700">Lead Source</Label>
-          <Select
+          <MobileSelect
             value={formData.lead_source}
             onValueChange={(value) => setFormData({ ...formData, lead_source: value })}
-          >
-            <SelectTrigger className="mt-1.5 h-12 rounded-xl">
-              <SelectValue placeholder="How did you find this lead?" />
-            </SelectTrigger>
-            <SelectContent>
-              {LEAD_SOURCES.map((source) => (
-                <SelectItem key={source} value={source}>{source}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            options={LEAD_SOURCES}
+            placeholder="How did you find this lead?"
+            label="Select Lead Source"
+            triggerClassName="mt-1.5 h-12 rounded-xl w-full"
+          />
         </div>
 
         <div>
