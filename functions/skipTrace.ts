@@ -9,134 +9,120 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { owner_id, owner_name, property_address, city, state, zip_code } = await req.json();
+    const { lead_id, property_address, city, state, zip_code } = await req.json();
 
-    if (!owner_id || !owner_name || !property_address) {
-      return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!lead_id && !property_address) {
+      return Response.json({ error: 'Lead ID or property address required' }, { status: 400 });
     }
 
-    // Use InvokeLLM with internet context to perform skip tracing
-    const fullAddress = `${property_address}, ${city}, ${state} ${zip_code}`;
-    
+    // Get lead data if only ID provided
+    let leadData = null;
+    if (lead_id) {
+      const leads = await base44.entities.Lead.filter({ id: lead_id });
+      leadData = leads[0];
+    } else {
+      leadData = {
+        property_address,
+        city,
+        state,
+        zip_code,
+      };
+    }
+
+    if (!leadData) {
+      return Response.json({ error: 'Lead not found' }, { status: 404 });
+    }
+
+    // Use LLM to perform skip trace
+    const prompt = `You are a skip trace expert. Given the following property information, find and return the owner's contact details.
+
+Property Address: ${leadData.property_address}
+City: ${leadData.city || 'Unknown'}
+State: ${leadData.state || 'Unknown'}
+Zip Code: ${leadData.zip_code || 'Unknown'}
+
+Search for and provide the following information if available:
+1. Owner's full name
+2. Phone numbers (if multiple, list them)
+3. Email addresses
+4. Mailing address
+5. Property ownership type (Individual, LLC, Trust, etc.)
+6. Any other relevant ownership details
+
+If you cannot find certain information, indicate that explicitly. Return results as structured data.`;
+
     const skipTraceResult = await base44.integrations.Core.InvokeLLM({
-      prompt: `You are a professional skip tracer. Find current contact information for the following property owner:
-
-Owner Name: ${owner_name}
-Property Address: ${fullAddress}
-
-Please search public records, property databases, voter registration records, and other publicly available sources to find:
-1. All available phone numbers (mobile and landline)
-2. Email addresses
-3. Current mailing address (if different from property address)
-4. Any alternative addresses
-
-Search thoroughly and provide ALL contact information you can find. For phone numbers, indicate confidence level based on how recent and reliable the source is.
-
-Return ONLY verified information from reliable public sources. If no information is found for a field, return null.`,
+      prompt,
       add_context_from_internet: true,
       response_json_schema: {
-        type: "object",
+        type: 'object',
         properties: {
-          phones: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                number: { type: "string" },
-                type: { 
-                  type: "string",
-                  description: "mobile, landline, or unknown"
-                },
-                confidence: {
-                  type: "string",
-                  description: "High, Medium, or Low"
-                },
-                source: { type: "string" }
-              }
-            }
-          },
-          emails: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                email: { type: "string" },
-                source: { type: "string" }
-              }
-            }
-          },
-          current_mailing_address: {
-            type: "object",
-            properties: {
-              address: { type: "string" },
-              is_different_from_property: { type: "boolean" }
-            }
-          },
-          alternative_addresses: {
-            type: "array",
-            items: {
-              type: "string"
-            }
-          },
-          data_quality: {
-            type: "string",
-            description: "excellent, good, partial, or poor"
-          },
-          notes: { type: "string" }
-        }
-      }
+          owner_name: { type: 'string', description: 'Full name of property owner' },
+          phone_numbers: { type: 'array', items: { type: 'string' }, description: 'List of phone numbers' },
+          email_addresses: { type: 'array', items: { type: 'string' }, description: 'List of email addresses' },
+          mailing_address: { type: 'string', description: 'Mailing address if different from property' },
+          entity_type: { type: 'string', enum: ['Individual', 'LLC', 'Trust', 'Other'], description: 'Type of property owner' },
+          additional_details: { type: 'string', description: 'Any other relevant ownership information' },
+          confidence_level: { type: 'string', enum: ['High', 'Medium', 'Low'], description: 'Confidence in the results' },
+        },
+      },
     });
 
-    // Update owner with primary email if found
-    const updates = {};
-    if (skipTraceResult.emails && skipTraceResult.emails.length > 0) {
-      updates.email = skipTraceResult.emails[0].email;
-    }
-    if (skipTraceResult.current_mailing_address?.address) {
-      updates.mailing_address = skipTraceResult.current_mailing_address.address;
-    }
+    // Save to Lead record
+    let updateData = {
+      skip_trace_status: skipTraceResult.owner_name ? 'Completed' : 'No Data Found',
+    };
 
-    if (Object.keys(updates).length > 0) {
-      await base44.entities.Owner.update(owner_id, updates);
-    }
+    await base44.entities.Lead.update(lead_id, updateData);
 
-    // Add phone numbers
-    const phonesCreated = [];
-    if (skipTraceResult.phones && skipTraceResult.phones.length > 0) {
-      for (const phone of skipTraceResult.phones) {
-        const phoneRecord = await base44.entities.Phone.create({
-          owner_id,
-          phone_number: phone.number,
-          confidence_level: phone.confidence || "Medium",
-          do_not_contact: false,
-          last_verified_date: new Date().toISOString().split('T')[0],
+    // Create or update Owner record if data found
+    let ownerRecord = null;
+    if (skipTraceResult.owner_name && lead_id) {
+      const existingOwners = await base44.entities.Owner.filter({ lead_id });
+      
+      if (existingOwners.length > 0) {
+        await base44.entities.Owner.update(existingOwners[0].id, {
+          owner_name: skipTraceResult.owner_name,
+          email: skipTraceResult.email_addresses?.[0] || null,
+          mailing_address: skipTraceResult.mailing_address,
+          entity_type: skipTraceResult.entity_type || 'Individual',
         });
-        phonesCreated.push(phoneRecord);
+        ownerRecord = existingOwners[0].id;
+      } else {
+        const newOwner = await base44.entities.Owner.create({
+          lead_id,
+          owner_name: skipTraceResult.owner_name,
+          email: skipTraceResult.email_addresses?.[0] || null,
+          mailing_address: skipTraceResult.mailing_address,
+          entity_type: skipTraceResult.entity_type || 'Individual',
+        });
+        ownerRecord = newOwner.id;
+      }
+
+      // Create Phone records for each phone number
+      if (skipTraceResult.phone_numbers?.length > 0 && ownerRecord) {
+        const existingPhones = await base44.entities.Phone.filter({ owner_id: ownerRecord });
+        
+        for (const phoneNum of skipTraceResult.phone_numbers) {
+          const phoneExists = existingPhones.some(p => p.phone_number === phoneNum);
+          if (!phoneExists) {
+            await base44.entities.Phone.create({
+              owner_id: ownerRecord,
+              phone_number: phoneNum,
+              confidence_level: skipTraceResult.confidence_level || 'Medium',
+            });
+          }
+        }
       }
     }
 
     return Response.json({
       success: true,
-      data: {
-        phones_found: skipTraceResult.phones?.length || 0,
-        emails_found: skipTraceResult.emails?.length || 0,
-        mailing_address_updated: !!skipTraceResult.current_mailing_address?.address,
-        data_quality: skipTraceResult.data_quality,
-        details: {
-          phones: skipTraceResult.phones || [],
-          emails: skipTraceResult.emails || [],
-          current_mailing_address: skipTraceResult.current_mailing_address,
-          alternative_addresses: skipTraceResult.alternative_addresses || [],
-        },
-        notes: skipTraceResult.notes,
-      }
+      data: skipTraceResult,
+      status: updateData.skip_trace_status,
+      owner_id: ownerRecord,
     });
-
   } catch (error) {
-    console.error('Skip trace error:', error);
-    return Response.json({ 
-      error: error.message,
-      success: false 
-    }, { status: 500 });
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
