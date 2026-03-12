@@ -70,7 +70,8 @@ export default function Layout({ children, currentPageName }) {
           ref={scrollContainerRef}
           className={isMapPage ? "h-screen" : "h-screen overflow-y-auto"}
           style={{ 
-            paddingBottom: hideNav || isMapPage ? 0 : "calc(env(safe-area-inset-bottom, 0px) + 4rem)"
+            paddingBottom: hideNav || isMapPage ? 0 : "calc(env(safe-area-inset-bottom, 0px) + 4rem)",
+            overscrollBehavior: "contain"
           }}
         >
           <PageTransition direction={navigationDirection}>
@@ -82,7 +83,8 @@ export default function Layout({ children, currentPageName }) {
           <nav 
             className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-50"
             style={{ 
-              paddingBottom: "env(safe-area-inset-bottom, 0px)"
+              paddingBottom: "env(safe-area-inset-bottom, 0px)",
+              overscrollBehavior: "contain"
             }}
           >
             <div className="max-w-lg mx-auto px-4">
