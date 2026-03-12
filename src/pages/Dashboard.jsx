@@ -12,6 +12,7 @@ import StatsCard from "@/components/dashboard/StatsCard";
 import LeadCard from "@/components/dashboard/LeadCard";
 import PipelineView from "@/components/pipeline/PipelineView";
 import PullToRefresh from "@/components/PullToRefresh";
+import LeadsMapView from "@/components/map/LeadsMapView";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("followups");
@@ -94,14 +95,17 @@ export default function Dashboard() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="w-full bg-white border border-slate-200 p-1 rounded-xl">
-            <TabsTrigger value="followups" className="flex-1 rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+          <TabsList className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
+            <TabsTrigger value="followups" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
               Follow-ups
             </TabsTrigger>
-            <TabsTrigger value="new" className="flex-1 rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <TabsTrigger value="new" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
               New
             </TabsTrigger>
-            <TabsTrigger value="pipeline" className="flex-1 rounded-lg data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <TabsTrigger value="map" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
+              Map
+            </TabsTrigger>
+            <TabsTrigger value="pipeline" className="flex-1 rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white dark:data-[state=active]:bg-white dark:data-[state=active]:text-slate-900">
               Pipeline
             </TabsTrigger>
           </TabsList>
@@ -134,6 +138,10 @@ export default function Dashboard() {
                 <LeadCard key={lead.id} lead={lead} />
               ))
             )}
+          </TabsContent>
+
+          <TabsContent value="map" className="mt-4">
+            <LeadsMapView leads={leads} statusFilter="All" />
           </TabsContent>
 
           <TabsContent value="pipeline" className="mt-4">
