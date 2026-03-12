@@ -48,37 +48,37 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AddLead from './pages/AddLead';
+import Analytics from './pages/Analytics';
 import Buyers from './pages/Buyers';
+import CalendarView from './pages/CalendarView';
 import Campaigns from './pages/Campaigns';
 import Dashboard from './pages/Dashboard';
+import DocumentTracker from './pages/DocumentTracker';
 import LeadDetail from './pages/LeadDetail';
 import Leads from './pages/Leads';
 import MapView from './pages/MapView';
 import Settings from './pages/Settings';
-import Analytics from './pages/Analytics';
-import CalendarView from './pages/CalendarView';
 import SignContract from './pages/SignContract';
 import SignatureSuccess from './pages/SignatureSuccess';
 import TaskBoard from './pages/TaskBoard';
-import DocumentTracker from './pages/DocumentTracker';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AddLead": AddLead,
+    "Analytics": Analytics,
     "Buyers": Buyers,
+    "CalendarView": CalendarView,
     "Campaigns": Campaigns,
     "Dashboard": Dashboard,
+    "DocumentTracker": DocumentTracker,
     "LeadDetail": LeadDetail,
     "Leads": Leads,
     "MapView": MapView,
     "Settings": Settings,
-    "Analytics": Analytics,
-    "CalendarView": CalendarView,
     "SignContract": SignContract,
     "SignatureSuccess": SignatureSuccess,
     "TaskBoard": TaskBoard,
-    "DocumentTracker": DocumentTracker,
 }
 
 export const pagesConfig = {
