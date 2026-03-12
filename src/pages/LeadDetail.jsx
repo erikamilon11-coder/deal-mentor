@@ -20,6 +20,7 @@ import {
   Trash2,
   Loader2,
   Clock,
+  ClipboardCheck,
 } from "lucide-react";
 import { addDays } from "date-fns";
 
@@ -30,6 +31,7 @@ import TaskSection from "@/components/leads/TaskSection";
 import OfferCalculator from "@/components/offers/OfferCalculator";
 import LeadForm from "@/components/leads/LeadForm";
 import ActivityFeed from "@/components/leads/ActivityFeed";
+import ClosingChecklist from "@/components/contracts/ClosingChecklist";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -343,9 +345,32 @@ export default function LeadDetail() {
           </div>
         )}
 
+        {/* Closing Checklist Banner - Shows when Under Contract */}
+        {lead.status === "Under Contract" && (
+          <div className="bg-gradient-to-r from-teal-50 to-cyan-50 border border-teal-200 rounded-2xl p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <ClipboardCheck className="w-5 h-5 text-teal-600 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-teal-900">Deal Under Contract!</h3>
+                <p className="text-sm text-teal-700 mt-1">
+                  Your closing checklist is ready. Track title, earnest money, and inspections.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setActiveTab("checklist")}
+                className="bg-white border-teal-300 text-teal-700 hover:bg-teal-50"
+              >
+                View Checklist
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 grid grid-cols-5">
+          <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-6" : "grid grid-cols-5"}`}>
             <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-1" />
               Chat
@@ -362,6 +387,12 @@ export default function LeadDetail() {
               <Calculator className="w-4 h-4 mr-1" />
               Offer
             </TabsTrigger>
+            {lead.status === "Under Contract" && (
+              <TabsTrigger value="checklist" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+                <ClipboardCheck className="w-4 h-4 mr-1" />
+                Closing
+              </TabsTrigger>
+            )}
             <TabsTrigger value="activity" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Clock className="w-4 h-4 mr-1" />
               Activity
@@ -411,6 +442,12 @@ export default function LeadDetail() {
             <TabsContent value="activity" className="mt-0">
               <ActivityFeed lead={lead} contracts={contracts} />
             </TabsContent>
+
+            {lead.status === "Under Contract" && (
+              <TabsContent value="checklist" className="mt-0">
+                <ClosingChecklist leadId={leadId} contract={contracts?.[0]} />
+              </TabsContent>
+            )}
           </div>
         </Tabs>
 
