@@ -15,6 +15,7 @@ import PipelineView from "@/components/pipeline/PipelineView";
 import PullToRefresh from "@/components/PullToRefresh";
 import LeadsMapView from "@/components/map/LeadsMapView";
 import BulkLeadImporter from "@/components/dashboard/BulkLeadImporter";
+import TasksWidget from "@/components/dashboard/TasksWidget";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("followups");
@@ -107,6 +108,11 @@ export default function Dashboard() {
             icon={MessageSquare}
             color="purple"
           />
+        </div>
+
+        {/* Tasks Widget */}
+        <div className="mb-6">
+          <TasksWidget />
         </div>
 
         {/* Tabs */}
