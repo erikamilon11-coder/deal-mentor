@@ -14,7 +14,7 @@ const CONFIDENCE_LEVELS = ["High", "Medium", "Low"];
 export default function OwnerSection({ leadId, owners, phones }) {
   const [showAddOwner, setShowAddOwner] = useState(false);
   const [showAddPhone, setShowAddPhone] = useState(null);
-  const [newOwner, setNewOwner] = useState({ owner_name: "", mailing_address: "", entity_type: "Individual" });
+  const [newOwner, setNewOwner] = useState({ owner_name: "", mailing_address: "", entity_type: "Individual", email: "" });
   const [newPhone, setNewPhone] = useState({ phone_number: "", confidence_level: "Medium" });
 
   const queryClient = useQueryClient();
@@ -24,7 +24,7 @@ export default function OwnerSection({ leadId, owners, phones }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owners", leadId] });
       setShowAddOwner(false);
-      setNewOwner({ owner_name: "", mailing_address: "", entity_type: "Individual" });
+      setNewOwner({ owner_name: "", mailing_address: "", entity_type: "Individual", email: "" });
     },
   });
 
@@ -68,6 +68,13 @@ export default function OwnerSection({ leadId, owners, phones }) {
             placeholder="Owner Name"
             value={newOwner.owner_name}
             onChange={(e) => setNewOwner({ ...newOwner, owner_name: e.target.value })}
+            className="h-10 rounded-lg"
+          />
+          <Input
+            placeholder="Email Address"
+            type="email"
+            value={newOwner.email}
+            onChange={(e) => setNewOwner({ ...newOwner, email: e.target.value })}
             className="h-10 rounded-lg"
           />
           <Input
@@ -120,6 +127,9 @@ export default function OwnerSection({ leadId, owners, phones }) {
                   {owner.entity_type}
                 </Badge>
               </div>
+              {owner.email && (
+                <p className="text-xs text-slate-500 mt-1">📧 {owner.email}</p>
+              )}
               {owner.mailing_address && (
                 <p className="text-sm text-slate-500 mt-1">{owner.mailing_address}</p>
               )}
