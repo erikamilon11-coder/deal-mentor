@@ -1,13 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, List, Users, Settings as SettingsIcon } from "lucide-react";
+import { Home, List, Users, Settings as SettingsIcon, MapPin } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import PageTransition from "@/components/PageTransition";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 // Track scroll positions for main tabs
 const scrollCache = new Map();
-const TAB_PAGES = ["Dashboard", "Leads", "Buyers"];
+const TAB_PAGES = ["Dashboard", "Leads", "MapView", "Buyers"];
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -18,6 +18,7 @@ export default function Layout({ children, currentPageName }) {
   const navItems = [
     { name: "Dashboard", icon: Home, page: "Dashboard" },
     { name: "Leads", icon: List, page: "Leads" },
+    { name: "Map", icon: MapPin, page: "MapView" },
     { name: "Buyers", icon: Users, page: "Buyers" },
     { name: "Settings", icon: SettingsIcon, page: "Settings" },
   ];
@@ -30,6 +31,7 @@ export default function Layout({ children, currentPageName }) {
   // Determine if we're on a detail/add page
   const hideNav = currentPath.includes("LeadDetail") || currentPath.includes("AddLead");
   const isTabPage = TAB_PAGES.includes(currentPageName);
+  const isMapPage = currentPageName === "MapView";
 
   // Save scroll position when leaving a tab page
   useEffect(() => {
@@ -66,9 +68,9 @@ export default function Layout({ children, currentPageName }) {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
         <div 
           ref={scrollContainerRef}
-          className="h-screen overflow-y-auto"
+          className={isMapPage ? "h-screen" : "h-screen overflow-y-auto"}
           style={{ 
-            paddingBottom: hideNav ? 0 : "calc(env(safe-area-inset-bottom, 0px) + 4rem)"
+            paddingBottom: hideNav || isMapPage ? 0 : "calc(env(safe-area-inset-bottom, 0px) + 4rem)"
           }}
         >
           <PageTransition direction={navigationDirection}>

@@ -53,6 +53,7 @@ import Dashboard from './pages/Dashboard';
 import LeadDetail from './pages/LeadDetail';
 import Leads from './pages/Leads';
 import Settings from './pages/Settings';
+import MapView from './pages/MapView';
 import __Layout from './Layout.jsx';
 
 
@@ -63,6 +64,7 @@ export const PAGES = {
     "LeadDetail": LeadDetail,
     "Leads": Leads,
     "Settings": Settings,
+    "MapView": MapView,
 }
 
 export const pagesConfig = {
