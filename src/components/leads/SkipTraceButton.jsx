@@ -26,7 +26,7 @@ export default function SkipTraceButton({ leadId, lead, onComplete }) {
         zip_code: lead.zip_code,
       });
 
-      setResult(response.data);
+      setResult(response.data.data);
       setShowResults(true);
       
       // Invalidate related queries
@@ -49,7 +49,7 @@ export default function SkipTraceButton({ leadId, lead, onComplete }) {
         onClick={handleRunSkipTrace}
         disabled={isLoading}
         variant="outline"
-        className="w-full h-10 gap-2"
+        className="h-10 gap-2"
       >
         {isLoading ? (
           <>
