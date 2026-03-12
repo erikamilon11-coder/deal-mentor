@@ -129,6 +129,10 @@ export default function LeadDetail() {
     },
   });
 
+  const optimisticStatusUpdate = (newStatus) => {
+    queryClient.setQueryData(["lead", leadId], (old) => ({ ...old, status: newStatus }));
+  };
+
   const createMessageMutation = useMutation({
     mutationFn: (messageData) => base44.entities.Message.create(messageData),
     onMutate: async (newMessage) => {
@@ -239,6 +243,7 @@ export default function LeadDetail() {
       }
     }
 
+    optimisticStatusUpdate(newStatus);
     updateLeadMutation.mutate(updates);
   };
 
