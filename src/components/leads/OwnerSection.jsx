@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { User, Plus, Phone, Building, Trash2, Check, X } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import SkipTraceButton from "@/components/leads/SkipTraceButton";
 
 const ENTITY_TYPES = ["Individual", "LLC", "Trust", "Other"];
 const CONFIDENCE_LEVELS = ["High", "Medium", "Low"];
 
-export default function OwnerSection({ leadId, owners, phones }) {
+export default function OwnerSection({ leadId, owners, phones, lead }) {
   const [showAddOwner, setShowAddOwner] = useState(false);
   const [showAddPhone, setShowAddPhone] = useState(null);
   const [newOwner, setNewOwner] = useState({ owner_name: "", mailing_address: "", entity_type: "Individual", email: "" });
@@ -212,6 +213,11 @@ export default function OwnerSection({ leadId, owners, phones }) {
             {getOwnerPhones(owner.id).length === 0 && showAddPhone !== owner.id && (
               <p className="text-xs text-slate-400 py-2">No phone numbers</p>
             )}
+          </div>
+
+          {/* Skip Trace Button */}
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <SkipTraceButton owner={owner} lead={lead} />
           </div>
         </div>
       ))}
