@@ -337,22 +337,26 @@ export default function LeadDetail() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full bg-white border border-slate-200 p-1 rounded-xl mb-4">
-            <TabsTrigger value="messages" className="flex-1 rounded-lg text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+          <TabsList className="w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 grid grid-cols-5">
+            <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-1" />
               Chat
             </TabsTrigger>
-            <TabsTrigger value="owners" className="flex-1 rounded-lg text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <TabsTrigger value="owners" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <User className="w-4 h-4 mr-1" />
               Owners
             </TabsTrigger>
-            <TabsTrigger value="tasks" className="flex-1 rounded-lg text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <TabsTrigger value="tasks" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calendar className="w-4 h-4 mr-1" />
               Tasks
             </TabsTrigger>
-            <TabsTrigger value="offer" className="flex-1 rounded-lg text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <TabsTrigger value="offer" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calculator className="w-4 h-4 mr-1" />
               Offer
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <Clock className="w-4 h-4 mr-1" />
+              Activity
             </TabsTrigger>
           </TabsList>
 
@@ -392,6 +396,10 @@ export default function LeadDetail() {
                   handleStatusChange("Under Contract");
                 }}
               />
+            </TabsContent>
+
+            <TabsContent value="activity" className="mt-0">
+              <ActivityFeed lead={lead} contracts={contracts} />
             </TabsContent>
           </div>
         </Tabs>
