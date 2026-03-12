@@ -209,6 +209,14 @@ export default function Dashboard() {
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Task Manager Section */}
+      <section className="mt-8">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
+          Follow-up Tasks
+        </h2>
+        <TaskManager />
+      </section>
     </div>
   );
 }
