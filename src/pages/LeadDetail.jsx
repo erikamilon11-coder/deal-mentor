@@ -40,6 +40,7 @@ import DocumentManager from "@/components/documents/DocumentManager";
 import DocumentTemplateGenerator from "@/components/contracts/DocumentTemplateGenerator";
 import ExpenseTracker from "@/components/leads/ExpenseTracker";
 import PropertyDataCard from "@/components/property/PropertyDataCard";
+import PropertyValuationCard from "@/components/property/PropertyValuationCard";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -499,6 +500,11 @@ export default function LeadDetail() {
 
             <TabsContent value="docs" className="mt-0">
               <div className="space-y-6">
+                <PropertyValuationCard
+                  lead={lead}
+                  propertyData={propertyData}
+                  onRefresh={() => refetchPropertyData()}
+                />
                 {propertyData && (
                   <PropertyDataCard
                     propertyData={propertyData}
