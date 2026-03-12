@@ -5,7 +5,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Home, Calendar, MessageSquare, LayoutGrid, Loader2 } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Plus, Home, Calendar, MessageSquare, LayoutGrid, Loader2, Upload } from "lucide-react";
 import { isToday, isBefore, startOfDay } from "date-fns";
 
 import StatsCard from "@/components/dashboard/StatsCard";
@@ -13,9 +14,11 @@ import LeadCard from "@/components/dashboard/LeadCard";
 import PipelineView from "@/components/pipeline/PipelineView";
 import PullToRefresh from "@/components/PullToRefresh";
 import LeadsMapView from "@/components/map/LeadsMapView";
+import BulkLeadImporter from "@/components/dashboard/BulkLeadImporter";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("followups");
+  const [showBulkImport, setShowBulkImport] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: leads, isLoading } = useQuery({
@@ -61,8 +64,21 @@ export default function Dashboard() {
         <div className="max-w-lg mx-auto px-4" style={{ paddingTop: "env(safe-area-inset-top, 1.5rem)" }}>
           {/* Header */}
           <div className="pt-6 pb-4">
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Deal Mentor</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Your real estate acquisition CRM</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Deal Mentor</h1>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Your real estate acquisition CRM</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBulkImport(true)}
+                className="rounded-lg"
+              >
+                <Upload className="w-4 h-4 mr-1" />
+                Import
+              </Button>
+            </div>
           </div>
 
         {/* Stats */}
@@ -162,6 +178,24 @@ export default function Dashboard() {
           </div>
         </div>
       </PullToRefresh>
+
+      {/* Bulk Import Sheet */}
+      <Sheet open={showBulkImport} onOpenChange={setShowBulkImport}>
+        <SheetContent side="bottom" className="rounded-t-3xl h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Bulk Import Leads</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <BulkLeadImporter
+              onImportComplete={() => {
+                queryClient.invalidateQueries({ queryKey: ["leads"] });
+                setShowBulkImport(false);
+              }}
+              onClose={() => setShowBulkImport(false)}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
