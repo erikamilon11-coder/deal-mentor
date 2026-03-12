@@ -266,8 +266,7 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
     return doc;
   };
 
-  const generateContractHTML = () => {
-<!DOCTYPE html>
+  const handleGenerateContract = async () => {
 <html>
 <head>
   <meta charset="UTF-8">
@@ -390,11 +389,7 @@ export default function ContractGenerator({ lead, offer, owners, onContractCreat
     <p>Please consult with a licensed attorney before signing any legal documents.</p>
   </div>
 </body>
-</html>
-    `;
-  };
 
-  const handleGenerateContract = async () => {
     setIsGenerating(true);
 
     // Generate PDF
