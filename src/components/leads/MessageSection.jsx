@@ -6,6 +6,7 @@ import { MessageSquare, Phone, Mail, Send, ArrowDown, ArrowUp } from "lucide-rea
 import { format } from "date-fns";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import EmailComposer from "./EmailComposer";
 
 const channelIcons = {
   SMS: MessageSquare,
@@ -19,9 +20,10 @@ const channelColors = {
   Email: "bg-purple-100 text-purple-700",
 };
 
-export default function MessageSection({ leadId, messages, onMessageSent }) {
+export default function MessageSection({ leadId, messages, onMessageSent, lead, owner }) {
   const [newMessage, setNewMessage] = useState("");
   const [channel, setChannel] = useState("SMS");
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
   const queryClient = useQueryClient();
 
   const sendMessageMutation = useMutation({
@@ -53,44 +55,68 @@ export default function MessageSection({ leadId, messages, onMessageSent }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-        <MessageSquare className="w-4 h-4" />
-        Conversation
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+          <MessageSquare className="w-4 h-4" />
+          Communication
+        </h3>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowEmailComposer(!showEmailComposer)}
+          className="rounded-lg"
+        >
+          <Mail className="w-3 h-3 mr-1" />
+          {showEmailComposer ? "Quick Log" : "Send Email"}
+        </Button>
+      </div>
 
-      <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-        <div className="flex gap-2">
-          {["SMS", "Call", "Email"].map((ch) => {
-            const Icon = channelIcons[ch];
-            return (
-              <Button
-                key={ch}
-                variant={channel === ch ? "default" : "outline"}
-                size="sm"
-                onClick={() => setChannel(ch)}
-                className={`flex-1 ${channel === ch ? "bg-slate-900" : ""}`}
-              >
-                <Icon className="w-3 h-3 mr-1" />
-                {ch}
-              </Button>
-            );
-          })}
-        </div>
+      {showEmailComposer ? (
+        <EmailComposer
+          lead={lead}
+          owner={owner}
+          onEmailSent={() => {
+            setShowEmailComposer(false);
+            if (onMessageSent) onMessageSent();
+            queryClient.invalidateQueries({ queryKey: ["messages", leadId] });
+          }}
+          onCancel={() => setShowEmailComposer(false)}
+        />
+      ) : (
+        <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+          <div className="flex gap-2">
+            {["SMS", "Call", "Email"].map((ch) => {
+              const Icon = channelIcons[ch];
+              return (
+                <Button
+                  key={ch}
+                  variant={channel === ch ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setChannel(ch)}
+                  className={`flex-1 ${channel === ch ? "bg-slate-900" : ""}`}
+                >
+                  <Icon className="w-3 h-3 mr-1" />
+                  {ch}
+                </Button>
+              );
+            })}
+          </div>
         <Textarea
           placeholder={`Log ${channel} message...`}
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           className="min-h-[80px] rounded-lg resize-none"
         />
-        <Button
-          onClick={handleSend}
-          disabled={!newMessage.trim() || sendMessageMutation.isPending}
-          className="w-full bg-slate-900 hover:bg-slate-800"
-        >
-          <Send className="w-4 h-4 mr-2" />
-          {sendMessageMutation.isPending ? "Sending..." : `Log ${channel}`}
-        </Button>
-      </div>
+          <Button
+            onClick={handleSend}
+            disabled={!newMessage.trim() || sendMessageMutation.isPending}
+            className="w-full bg-slate-900 hover:bg-slate-800"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            {sendMessageMutation.isPending ? "Sending..." : `Log ${channel}`}
+          </Button>
+        </div>
+      )}
 
       <div className="space-y-3 max-h-[400px] overflow-y-auto">
         {sortedMessages.length === 0 && (
