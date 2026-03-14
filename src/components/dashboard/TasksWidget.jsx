@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { CheckCircle2, Clock, AlertCircle, Zap, ChevronRight } from "lucide-react";
+import { CheckCircle2, Clock, Zap, ChevronRight } from "lucide-react";
 import { format, isToday, isTomorrow, isPast } from "date-fns";
 
 export default function TasksWidget() {

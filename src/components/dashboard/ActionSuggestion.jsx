@@ -51,6 +51,7 @@ export default function ActionSuggestion({ status, onAction }) {
           <p className="text-slate-400 text-xs font-medium uppercase tracking-wide">Next Action</p>
           <h3 className="font-semibold text-lg mt-0.5">{suggestion.text}</h3>
           <p className="text-slate-400 text-sm mt-1">{suggestion.description}</p>
+          <p className="text-slate-400 text-xs mt-2">Verify key info first, then complete this action and set the next follow-up step.</p>
         </div>
       </div>
       <Button 

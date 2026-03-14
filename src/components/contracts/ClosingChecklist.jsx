@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ClipboardCheck, Calendar, DollarSign, FileText, CheckCircle2, Circle, FileSignature } from "lucide-react";
+import { ClipboardCheck, Calendar, DollarSign, FileText, CheckCircle2, FileSignature } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
 import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 
 const DEFAULT_CHECKLIST_ITEMS = [
@@ -110,6 +108,13 @@ export default function ClosingChecklist({ leadId, contract }) {
 
   return (
     <div className="space-y-5">
+      <div className="rounded-xl border border-teal-200 bg-teal-50 p-3">
+        <p className="text-xs font-semibold text-teal-900">Stage 7 — Contract to Close</p>
+        <p className="mt-1 text-xs text-teal-800">
+          Verify title, escrow, inspections, and buyer assignment timing. Common mistake: assuming "under contract" means closing is automatic.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-slate-900 flex items-center gap-2">

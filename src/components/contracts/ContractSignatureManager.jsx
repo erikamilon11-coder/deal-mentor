@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +82,13 @@ export default function ContractSignatureManager({ contract, lead, onSignatureCo
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-3">
+          <p className="text-xs font-semibold text-blue-900">Signature execution guidance</p>
+          <p className="mt-1 text-xs text-blue-800">
+            Before sending, verify signer name/email and final terms. Next step after signed: move to checklist and track closing tasks.
+          </p>
+        </div>
+
         <div>
           <p className="text-sm text-slate-600 mb-2">Current Status</p>
           {getStatusBadge()}

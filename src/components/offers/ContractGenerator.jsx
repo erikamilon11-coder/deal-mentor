@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FileText, Download, Loader2, Calendar } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import ContractSignatureManager from "@/components/contracts/ContractSignatureManager";
 import jsPDF from "jspdf";

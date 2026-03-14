@@ -4,18 +4,19 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Upload, 
   FileText, 
   CheckCircle2, 
   AlertCircle, 
-  ArrowRight, 
-  X,
+  ArrowRight,
   Loader2,
   Download
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createLeadWithStageFallback, getStagePersistenceFields } from "@/lib/dealStages";
+import { toast } from "sonner";
 
 const LEAD_FIELDS = [
   { value: "property_address", label: "Property Address", required: true },
@@ -149,7 +150,7 @@ export default function CSVImporter({ onComplete, onCancel }) {
 
   const importMutation = useMutation({
     mutationFn: async () => {
-      const results = { success: 0, failed: 0 };
+      const results = { success: 0, failed: 0, fallbackUsed: 0, opaqueSchemaRisk: 0 };
 
       for (const row of csvData) {
         try {
@@ -165,9 +166,24 @@ export default function CSVImporter({ onComplete, onCancel }) {
           // Set batch status
           leadData.status = batchStatus;
           leadData.last_activity_date = new Date().toISOString();
+          Object.assign(
+            leadData,
+            getStagePersistenceFields({ ...leadData, status: leadData.status }, { updatedDate: new Date().toISOString() })
+          );
 
           // Create lead
-          const lead = await base44.entities.Lead.create(leadData);
+          const { lead, fallbackUsed } = await createLeadWithStageFallback(
+            (payload) => base44.entities.Lead.create(payload),
+            leadData,
+            {
+              onOpaqueStagePersistenceRisk: () => {
+                results.opaqueSchemaRisk += 1;
+              },
+            }
+          );
+          if (fallbackUsed) {
+            results.fallbackUsed += 1;
+          }
 
           // Map owner data if available
           const ownerData = {};
@@ -214,9 +230,18 @@ export default function CSVImporter({ onComplete, onCancel }) {
     onSuccess: (results) => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setStep(4);
+      if (results.fallbackUsed > 0) {
+        toast.info(`Imported ${results.success} leads. ${results.fallbackUsed} were saved in compatibility mode for stage tracking.`);
+      }
+      if (results.opaqueSchemaRisk > 0) {
+        toast.warning("Some rows may be blocked by a workspace setup mismatch. Please retry after backend updates are synced.");
+      }
       if (onComplete) {
         setTimeout(() => onComplete(results), 2000);
       }
+    },
+    onError: () => {
+      toast.error("Import couldn't finish. Please review your file and try again.");
     },
   });
 

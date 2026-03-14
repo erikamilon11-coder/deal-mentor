@@ -60,10 +60,17 @@ export default function TaskSection({ leadId, tasks, lead, owner }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+        <p className="text-xs font-semibold text-amber-900">Stage 6 — Follow-up Management</p>
+        <p className="mt-1 text-xs text-amber-800">
+          Set your next task before leaving this lead. Verify due date + channel. Common miss: no follow-up task after a seller reply.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-900 flex items-center gap-2">
           <Calendar className="w-4 h-4" />
-          Tasks
+          Follow-up Tasks
         </h3>
         <div className="flex gap-2">
           <Button
@@ -82,7 +89,7 @@ export default function TaskSection({ leadId, tasks, lead, owner }) {
             className="text-slate-600"
           >
             <Plus className="w-4 h-4 mr-1" />
-            Add
+            Add Next Step
           </Button>
         </div>
       </div>
@@ -137,7 +144,7 @@ export default function TaskSection({ leadId, tasks, lead, owner }) {
       )}
 
       {openTasks.length === 0 && !showAdd && (
-        <p className="text-sm text-slate-500 text-center py-4">No open tasks</p>
+        <p className="text-sm text-slate-500 text-center py-4">No open follow-up tasks. Add your next seller touchpoint now.</p>
       )}
 
       <div className="space-y-2">

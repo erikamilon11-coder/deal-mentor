@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function MobileSelect({ value, onValueChange, options, placeholder, label, triggerClassName }) {
+export default function MobileSelect({ value, onValueChange, options, placeholder, label, triggerClassName, disabled = false }) {
   const [open, setOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   if (!isMobile) {
     return (
-      <Select value={value} onValueChange={onValueChange}>
+      <Select value={value} onValueChange={onValueChange} disabled={disabled}>
         <SelectTrigger className={triggerClassName}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
@@ -32,6 +32,7 @@ export default function MobileSelect({ value, onValueChange, options, placeholde
         <Button
           variant="outline"
           className={`justify-between ${triggerClassName}`}
+          disabled={disabled}
         >
           <span className="text-slate-600">{value || placeholder}</span>
           <ChevronDown className="w-4 h-4 opacity-50" />

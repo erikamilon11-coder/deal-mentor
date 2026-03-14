@@ -13,8 +13,6 @@ import {
   Send, 
   AlertCircle,
   Eye,
-  Download,
-  Mail,
   Calendar,
   User,
   ArrowLeft

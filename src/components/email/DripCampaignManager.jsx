@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Play, Pause, CheckCircle2, Clock, MousePointerClick, Eye, TrendingUp } from "lucide-react";
+import { Mail, Play, Pause, Clock, MousePointerClick, Eye, TrendingUp } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";

@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, TrendingUp, Clock, DollarSign, Home, Award, Target, Activity, Globe } from "lucide-react";
+import { Loader2, TrendingUp, DollarSign, Home, Award, Activity, Globe } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 import PerformanceMetrics from "@/components/analytics/PerformanceMetrics";

@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Loader2, Calendar, Phone, MessageSquare, CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { format, isPast, isToday } from "date-fns";
 import { useNavigate } from "react-router-dom";

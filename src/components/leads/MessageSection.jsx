@@ -104,6 +104,13 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
 
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-3">
+        <p className="text-xs font-semibold text-indigo-900">Stage 3 — Seller Contact Prep</p>
+        <p className="mt-1 text-xs text-indigo-800">
+          Do now: confirm ownership, motivation, timeline, and price expectation. Mistake to avoid: sending offers before confirming why they want to sell.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-slate-900 flex items-center gap-2">
           <MessageSquare className="w-4 h-4" />
@@ -169,7 +176,7 @@ export default function MessageSection({ leadId, messages, onMessageSent, lead, 
           </div>
           <div className="relative">
             <Textarea
-              placeholder={`Log ${channel} message...`}
+              placeholder={`Log ${channel} outcome + next step...`}
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               className="min-h-[80px] rounded-lg resize-none pr-10"

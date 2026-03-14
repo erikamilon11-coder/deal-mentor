@@ -3,28 +3,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { X, Save, MapPin, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import { X, Save, MapPin, Sparkles, Loader2, CheckCircle2, Info } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import MobileSelect from "@/components/leads/MobileSelect";
 
 const LEAD_SOURCES = ["Driving for Dollars", "List", "Referral", "Other"];
 const DISTRESS_TAGS = ["Vacant", "Overgrown", "Boarded", "FSBO", "Inherited", "Other"];
 
+const toText = (value) => (value == null ? "" : String(value));
+
 const getInitialFormData = (lead) => ({
-  property_address: lead?.property_address || "",
-  city: lead?.city || "",
-  state: lead?.state || "",
-  zip_code: lead?.zip_code || "",
-  owner: lead?.owner || "",
-  phone: lead?.phone || "",
-  email: lead?.email || "",
-  message: lead?.message || "",
-  next_action_suggestion: lead?.next_action_suggestion || "",
-  notes: lead?.notes || "",
+  property_address: toText(lead?.property_address),
+  city: toText(lead?.city),
+  state: toText(lead?.state),
+  zip_code: toText(lead?.zip_code),
+  owner: toText(lead?.owner),
+  phone: toText(lead?.phone),
+  email: toText(lead?.email),
+  message: toText(lead?.message),
+  next_action_suggestion: toText(lead?.next_action_suggestion),
+  notes: toText(lead?.notes),
   latitude: lead?.latitude ?? "",
   longitude: lead?.longitude ?? "",
   lead_source: lead?.lead_source || "",
-  distress_tags: lead?.distress_tags || [],
+  distress_tags: Array.isArray(lead?.distress_tags) ? lead.distress_tags : [],
   deal_score: lead?.deal_score ?? "",
 });
 
@@ -35,9 +37,32 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichmentError, setEnrichmentError] = useState(null);
 
+  const leadChangeKey = [
+    lead?.id,
+    lead?.updated_date,
+    lead?.property_address,
+    lead?.city,
+    lead?.state,
+    lead?.zip_code,
+    lead?.owner,
+    lead?.phone,
+    lead?.email,
+    lead?.message,
+    lead?.next_action_suggestion,
+    lead?.notes,
+    lead?.latitude,
+    lead?.longitude,
+    lead?.lead_source,
+    Array.isArray(lead?.distress_tags) ? lead.distress_tags.join("|") : "",
+    lead?.deal_score,
+  ].join("::");
+
   useEffect(() => {
     setFormData(getInitialFormData(lead));
-  }, [lead?.id, lead?.updated_date]);
+    setErrors({});
+    setEnrichmentData(null);
+    setEnrichmentError(null);
+  }, [leadChangeKey]);
 
   const updateField = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -69,6 +94,13 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
       nextErrors.email = "Enter a valid email address.";
     }
 
+    if (formData.deal_score !== "") {
+      const parsedDealScore = Number(formData.deal_score);
+      if (!Number.isFinite(parsedDealScore) || parsedDealScore < 1 || parsedDealScore > 10) {
+        nextErrors.deal_score = "Deal score must be a number between 1 and 10.";
+      }
+    }
+
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -77,11 +109,17 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
     e.preventDefault();
     if (!validateForm()) return;
 
+    const parseOptionalNumber = (value) => {
+      const trimmedValue = String(value ?? "").trim();
+      if (!trimmedValue) return null;
+      const parsedValue = Number(trimmedValue);
+      return Number.isFinite(parsedValue) ? parsedValue : null;
+    };
+
     onSave({
       ...formData,
       property_address: formData.property_address.trim(),
       city: formData.city.trim(),
-      state: formData.state.trim(),
       zip_code: formData.zip_code.trim(),
       owner: formData.owner.trim(),
       phone: formData.phone.trim(),
@@ -89,9 +127,11 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
       message: formData.message.trim(),
       next_action_suggestion: formData.next_action_suggestion.trim(),
       notes: formData.notes.trim(),
-      deal_score: formData.deal_score ? Number(formData.deal_score) : null,
-      latitude: formData.latitude ? Number(formData.latitude) : null,
-      longitude: formData.longitude ? Number(formData.longitude) : null,
+      state: formData.state.trim().toUpperCase(),
+      lead_source: formData.lead_source.trim(),
+      deal_score: parseOptionalNumber(formData.deal_score),
+      latitude: parseOptionalNumber(formData.latitude),
+      longitude: parseOptionalNumber(formData.longitude),
       enrichmentData,
     });
   };
@@ -160,6 +200,18 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-4">
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-start gap-2">
+            <Info className="mt-0.5 h-4 w-4 text-blue-700" />
+            <div>
+              <p className="text-sm font-semibold text-blue-900">Stage 1 — Lead Capture</p>
+              <p className="mt-1 text-xs text-blue-800">
+                Start here. Enter what you know now and save. You can update missing details later after speaking with the seller.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="property_address" className="text-slate-700">Property Address</Label>
           <div className="relative mt-1.5">
@@ -249,12 +301,12 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
         </div>
 
         <div>
-          <Label className="text-slate-700">Message</Label>
+          <Label className="text-slate-700">Lead Summary or Seller Situation</Label>
           <Textarea
             value={formData.message}
             onChange={(e) => updateField("message", e.target.value)}
             className="mt-1.5 min-h-[100px] rounded-xl"
-            placeholder="Add the initial message or lead summary..."
+            placeholder="Example: Inherited property, seller wants quick close, home needs repairs"
           />
         </div>
 
@@ -265,17 +317,17 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
             value={formData.next_action_suggestion}
             onChange={(e) => updateField("next_action_suggestion", e.target.value)}
             className="mt-1.5 h-12 rounded-xl"
-            placeholder="Call seller tomorrow"
+            placeholder="Example: Call seller and confirm motivation + timeline"
           />
         </div>
 
         <div>
-          <Label className="text-slate-700">Notes</Label>
+          <Label className="text-slate-700">Important Notes About This Property or Seller</Label>
           <Textarea
             value={formData.notes}
             onChange={(e) => updateField("notes", e.target.value)}
             className="mt-1.5 min-h-[100px] rounded-xl"
-            placeholder="Add any notes about this property..."
+            placeholder="Anything to remember: condition, tenant status, gate code, objections, timeline"
           />
         </div>
 
@@ -336,12 +388,12 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
 
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <div>
-            <Label className="text-slate-700">Lead Source</Label>
+            <Label className="text-slate-700">Where did this lead come from?</Label>
             <MobileSelect
               value={formData.lead_source}
               onValueChange={(value) => updateField("lead_source", value)}
               options={LEAD_SOURCES}
-              placeholder="How did you find this lead?"
+              placeholder="Driving for Dollars, list, referral, etc."
               label="Select Lead Source"
               triggerClassName="mt-1.5 h-12 rounded-xl w-full"
             />
@@ -364,7 +416,7 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
           </div>
 
           <div>
-            <Label className="text-slate-700">Deal Score (1-10)</Label>
+            <Label className="text-slate-700">Deal Score (1–10) — quick opportunity rating</Label>
             <Input
               type="number"
               min="1"
@@ -372,8 +424,10 @@ export default function LeadForm({ lead, onSave, onCancel, isLoading }) {
               value={formData.deal_score}
               onChange={(e) => updateField("deal_score", e.target.value)}
               className="mt-1.5 h-12 rounded-xl"
-              placeholder="Rate this deal 1-10"
+              placeholder="Rate motivation, margin, location, and timeline"
             />
+            {errors.deal_score && <p className="mt-1.5 text-sm text-red-600">{errors.deal_score}</p>}
+            <p className="mt-1 text-xs text-slate-500">Add details in notes explaining why this score makes sense.</p>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, List, Users, Settings as SettingsIcon, MapPin, Zap, BarChart3, Calendar as CalendarIcon, Kanban } from "lucide-react";
+import { Home, List, Settings as SettingsIcon, BarChart3, Kanban } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import PageTransition from "@/components/PageTransition";
 import { ThemeProvider } from "@/components/ThemeProvider";
