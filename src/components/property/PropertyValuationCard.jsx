@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, TrendingUp, DollarSign, Home, BarChart3, RefreshCw } from "lucide-react";
+import { Loader2, TrendingUp, Home, BarChart3, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const formatCurrency = (value) => {

@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Loader2, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Phone, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CallLogger({ leadId, owner }) {
   const queryClient = useQueryClient();
-  const [phoneNumber, setPhoneNumber] = useState(owner?.email || "");
+  const [phoneNumber, setPhoneNumber] = useState(owner?.phone_number || "");
   const [isDialing, setIsDialing] = useState(false);
 
   const { data: callMessages = [] } = useQuery({
@@ -57,6 +57,13 @@ export default function CallLogger({ leadId, owner }) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <p className="text-xs font-semibold text-blue-900">Seller call prep</p>
+            <p className="mt-1 text-xs text-blue-800">
+              Confirm seller motivation, timeline, and expected price. End every call by setting a follow-up task.
+            </p>
+          </div>
+
           <div>
             <label className="text-sm text-slate-600 mb-2 block">Phone Number</label>
             <Input

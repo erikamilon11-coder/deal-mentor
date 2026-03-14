@@ -5,10 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Loader2, CheckCircle2, Copy } from "lucide-react";
+import { FileText, Download, Loader2, CheckCircle2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import jsPDF from "jspdf";
 
 const CONTRACT_TEMPLATES = {

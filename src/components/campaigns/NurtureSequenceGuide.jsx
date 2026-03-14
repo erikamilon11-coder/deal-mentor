@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Lightbulb, CheckCircle2, Clock, Zap } from "lucide-react";
 
 export default function NurtureSequenceGuide() {

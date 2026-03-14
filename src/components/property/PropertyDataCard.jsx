@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Home, DollarSign, Calendar, Ruler, Bed, Bath, TrendingUp, Loader2, RefreshCw } from "lucide-react";
+import { Home, DollarSign, Calendar, Ruler, Bed, Bath, TrendingUp, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 
 export default function PropertyDataCard({ propertyData, onRefresh, isRefreshing }) {

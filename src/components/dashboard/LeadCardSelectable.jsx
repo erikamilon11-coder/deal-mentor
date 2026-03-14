@@ -4,6 +4,7 @@ import { MapPin, Calendar, ChevronRight, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { format } from "date-fns";
+import { getLeadDealStage } from "@/lib/dealStages";
 
 const statusColors = {
   "New": "bg-blue-100 text-blue-700",
@@ -16,6 +17,8 @@ const statusColors = {
   "Dead": "bg-slate-100 text-slate-500",
 };
 
+const stagePillClasses = "text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full";
+
 export default function LeadCardSelectable({
   lead,
   showFollowup = false,
@@ -23,6 +26,8 @@ export default function LeadCardSelectable({
   onToggleSelect,
   selectionMode = false,
 }) {
+  const dealStage = getLeadDealStage(lead);
+
   const handleCheckboxChange = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -61,6 +66,7 @@ export default function LeadCardSelectable({
                 <Badge className={statusColors[lead.status] || "bg-slate-100"}>
                   {lead.status}
                 </Badge>
+                <span className={stagePillClasses}>{dealStage}</span>
                 {lead.deal_score && (
                   <span className="text-xs font-semibold text-slate-500">
                     Score: {lead.deal_score}

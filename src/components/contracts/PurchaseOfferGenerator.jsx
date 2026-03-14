@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
 import {
   FileText,
   Download,
@@ -49,7 +48,7 @@ export default function PurchaseOfferGenerator({
     },
     onSuccess: (data) => {
       setGeneratedContract(data);
-      toast.success("Contract generated successfully!");
+      toast.success("Contract draft ready. Next step: verify numbers and send for signature.");
       setShowForm(false);
     },
     onError: (error) => toast.error(error.message || "Failed to generate contract"),
@@ -94,6 +93,16 @@ export default function PurchaseOfferGenerator({
     }));
   };
 
+  const handleGenerateContract = () => {
+    const purchasePrice = Number(formData.offer_price);
+    if (!Number.isFinite(purchasePrice) || purchasePrice <= 0) {
+      toast.error("Purchase price must be a valid number before generating a contract.");
+      return;
+    }
+
+    generateMutation.mutate();
+  };
+
   return (
     <div className="space-y-4">
       {/* Contract Generation Form */}
@@ -102,10 +111,10 @@ export default function PurchaseOfferGenerator({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5" />
-              Generate Purchase Offer
+              Stage 5 — Generate Purchase Offer
             </CardTitle>
             <p className="text-sm text-slate-600 mt-2">
-              Create a professional purchase agreement for {lead?.property_address}
+              Confirm seller details and pricing, then generate a clean purchase agreement for {lead?.property_address}
             </p>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -178,7 +187,7 @@ export default function PurchaseOfferGenerator({
 
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => generateMutation.mutate()}
+                    onClick={handleGenerateContract}
                     disabled={!formData.offer_price || generateMutation.isPending}
                     className="flex-1 gap-2"
                   >
@@ -299,8 +308,7 @@ export default function PurchaseOfferGenerator({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                 <p className="text-blue-900">
-                  The contract will be sent via DocuSign. The signer will receive an email with
-                  instructions to review and sign the document electronically.
+                  Before sending: verify property address, seller name, purchase price, and closing date. Then send for e-signature.
                 </p>
               </div>
 

@@ -3,6 +3,7 @@ import { createPageUrl } from "@/utils";
 import { MapPin, Calendar, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { getLeadDealStage } from "@/lib/dealStages";
 
 const statusColors = {
   "New": "bg-blue-100 text-blue-700",
@@ -15,7 +16,11 @@ const statusColors = {
   "Dead": "bg-slate-100 text-slate-500",
 };
 
+const stagePillClasses = "text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full";
+
 export default function LeadCard({ lead, showFollowup = false }) {
+  const dealStage = getLeadDealStage(lead);
+
   return (
     <Link to={createPageUrl(`LeadDetail?id=${lead.id}`)}>
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 hover:shadow-md hover:border-slate-200 transition-all active:scale-[0.98]">
@@ -25,6 +30,7 @@ export default function LeadCard({ lead, showFollowup = false }) {
               <Badge className={statusColors[lead.status] || "bg-slate-100"}>
                 {lead.status}
               </Badge>
+              <span className={stagePillClasses}>{dealStage}</span>
               {lead.deal_score && (
                 <span className="text-xs font-semibold text-slate-500">
                   Score: {lead.deal_score}

@@ -4,6 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { createLeadWithStageFallback, getStagePersistenceFields } from "@/lib/dealStages";
 
 import LeadForm from "@/components/leads/LeadForm";
 
@@ -14,13 +16,29 @@ export default function AddLead() {
   const createMutation = useMutation({
     mutationFn: async (data) => {
       const { enrichmentData, ...leadData } = data;
-
-      const lead = await base44.entities.Lead.create({
+      const leadPayload = {
         ...leadData,
         status: "New",
         last_activity_date: new Date().toISOString(),
         next_action_suggestion: leadData.next_action_suggestion || "Send First Message",
-      });
+        ...getStagePersistenceFields({ ...leadData, status: "New" }, { updatedDate: new Date().toISOString() }),
+      };
+
+      let stageFallbackUsed = false;
+      let stagePersistenceRiskDetected = false;
+
+      const { lead } = await createLeadWithStageFallback(
+        (payload) => base44.entities.Lead.create(payload),
+        leadPayload,
+        {
+          onFallbackUsed: () => {
+            stageFallbackUsed = true;
+          },
+          onOpaqueStagePersistenceRisk: () => {
+            stagePersistenceRiskDetected = true;
+          },
+        }
+      );
 
       if (leadData.owner) {
         const owner = await base44.entities.Owner.create({
@@ -49,11 +67,26 @@ export default function AddLead() {
         });
       }
 
-      return lead;
+      return { lead, stageFallbackUsed, stagePersistenceRiskDetected };
     },
-    onSuccess: (lead) => {
+    onSuccess: ({ lead, stageFallbackUsed }) => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
+      toast.success("Lead saved. Next step: contact the seller and confirm motivation, timeline, and price expectations.");
+      if (stageFallbackUsed) {
+        toast.info("Lead saved successfully. We used compatibility mode for stage tracking while your workspace syncs updates.");
+      }
       navigate(createPageUrl(`LeadDetail?id=${lead.id}`));
+    },
+    onError: (error) => {
+      const fallbackHint =
+        error?.stagePersistenceRiskDetected ||
+        /validation|bad request|payload|schema/i.test(error?.message || "");
+
+      toast.error(
+        fallbackHint
+          ? "We couldn't save this lead right now due to a temporary setup mismatch. Please try again or contact support if this continues."
+          : "We couldn't save this lead right now. Please check the required fields and try again."
+      );
     },
   });
 
@@ -70,9 +103,18 @@ export default function AddLead() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-slate-900">Add Lead</h1>
-            <p className="text-sm text-slate-500">Enter the lead details below.</p>
+            <h1 className="text-xl font-bold text-slate-900">Add New Lead</h1>
+            <p className="text-sm text-slate-500">Capture the property opportunity first, then fill missing details later.</p>
           </div>
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4">
+          <p className="text-sm font-semibold text-slate-900">How to use this step</p>
+          <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs text-slate-600">
+            <li>Enter property address and location.</li>
+            <li>Add seller contact details if available.</li>
+            <li>Save now and set your next action so the lead does not go cold.</li>
+          </ol>
         </div>
 
         <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">

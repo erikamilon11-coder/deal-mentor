@@ -11,9 +11,16 @@ Deno.serve(async (req) => {
     }
 
     const { lead_id, offer_price, assignment_fee, estimated_repairs, closing_date } = await req.json();
+    const purchasePrice = Number(offer_price);
+    const assignmentFee = assignment_fee == null ? 0 : Number(assignment_fee);
+    const estimatedRepairs = estimated_repairs == null ? null : Number(estimated_repairs);
 
-    if (!lead_id || !offer_price) {
+    if (!lead_id || !Number.isFinite(purchasePrice) || purchasePrice <= 0) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    if (!Number.isFinite(assignmentFee) || (estimatedRepairs !== null && !Number.isFinite(estimatedRepairs))) {
+      return Response.json({ error: 'Invalid numeric input' }, { status: 400 });
     }
 
     // Fetch all necessary data
@@ -117,10 +124,10 @@ Deno.serve(async (req) => {
     doc.setFontSize(10);
     doc.setFont(undefined, "normal");
     const terms = [
-      `Purchase Price: $${offer_price.toLocaleString()}`,
-      ...(estimated_repairs ? [`Estimated Repairs: $${estimated_repairs.toLocaleString()}`] : []),
-      ...(assignment_fee ? [`Assignment Fee: $${assignment_fee.toLocaleString()}`] : []),
-      `Total Consideration: $${(offer_price + (assignment_fee || 0)).toLocaleString()}`,
+      `Purchase Price: $${purchasePrice.toLocaleString()}`,
+      ...(estimatedRepairs ? [`Estimated Repairs: $${estimatedRepairs.toLocaleString()}`] : []),
+      ...(assignmentFee ? [`Assignment Fee: $${assignmentFee.toLocaleString()}`] : []),
+      `Total Consideration: $${(purchasePrice + assignmentFee).toLocaleString()}`,
       ...(closing_date ? [`Proposed Closing Date: ${closing_date}`] : []),
       "Inspection Period: 10 days",
       "Due Diligence: 7 days",
@@ -190,7 +197,7 @@ Deno.serve(async (req) => {
     // Create contract record
     const contract = await base44.entities.Contract.create({
       lead_id,
-      purchase_price: offer_price,
+      purchase_price: purchasePrice,
       closing_date: closing_date || null,
       status: "Draft",
       signer_name: owner?.owner_name || "Seller",

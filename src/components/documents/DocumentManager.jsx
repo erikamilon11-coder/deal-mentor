@@ -137,6 +137,13 @@ export default function DocumentManager({ leadId, lead, owner }) {
 
   return (
     <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <p className="text-xs font-semibold text-slate-900">Document workflow</p>
+        <p className="mt-1 text-xs text-slate-600">
+          Upload signed files, title docs, and supporting evidence. Verify file names and type so your closing team can move fast.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between">
         <div>
           <h3 className="font-semibold text-slate-900 flex items-center gap-2">
@@ -155,7 +162,7 @@ export default function DocumentManager({ leadId, lead, owner }) {
             className="text-slate-600"
           >
             <FilePlus className="w-4 h-4 mr-1" />
-            Generate
+            Generate Doc
           </Button>
           <Button
             variant="ghost"
@@ -171,7 +178,7 @@ export default function DocumentManager({ leadId, lead, owner }) {
             ) : (
               <>
                 <Plus className="w-4 h-4 mr-1" />
-                Upload
+                Upload File
               </>
             )}
           </Button>

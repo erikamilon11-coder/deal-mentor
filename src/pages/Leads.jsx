@@ -102,7 +102,7 @@ export default function Leads() {
           <div className="pt-6 pb-4 flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-slate-900 dark:text-white">All Leads</h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{leads?.length || 0} properties</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{leads?.length || 0} properties • review and plan your next action</p>
             </div>
           <Link to={createPageUrl("Dashboard")}>
             <Button variant="ghost" size="icon" className="rounded-xl">
@@ -153,7 +153,13 @@ export default function Leads() {
           {filteredLeads.length === 0 && (
             <div className="bg-white rounded-2xl p-8 text-center">
               <Home className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500">No leads found</p>
+              <p className="text-slate-700 font-medium">No leads found</p>
+              <p className="mt-1 text-sm text-slate-500">Start by adding your first property lead and set the next follow-up action.</p>
+              {!search && (
+                <Link to={createPageUrl("AddLead")} className="inline-block mt-4">
+                  <Button className="rounded-xl">Add New Lead</Button>
+                </Link>
+              )}
               {search && (
                 <Button
                   variant="link"

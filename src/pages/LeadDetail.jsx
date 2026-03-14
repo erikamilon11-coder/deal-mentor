@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -47,6 +47,9 @@ import CallLogger from "@/components/calls/CallLogger";
 import MarketingContentGenerator from "@/components/marketing/MarketingContentGenerator";
 import PurchaseOfferGenerator from "@/components/contracts/PurchaseOfferGenerator";
 import InspectionTool from "@/components/inspections/InspectionTool";
+import DealStageRail from "@/components/leads/DealStageRail";
+import { toast } from "sonner";
+import { getLeadDealStageMeta } from "@/lib/dealStages";
 
 const STATUSES = ["New", "Contacted", "Responded", "Talking", "Offer Sent", "Under Contract", "Closed", "Dead"];
 
@@ -127,6 +130,51 @@ export default function LeadDetail() {
   const ownerPhones = primaryOwner ? (phones?.filter((phone) => phone.owner_id === primaryOwner.id) || []) : [];
   const primaryPhone = lead?.phone || ownerPhones[0]?.phone_number || "";
 
+  const leadFormData = useMemo(() => {
+    if (!lead) return null;
+
+    return {
+      ...lead,
+      owner: lead.owner || primaryOwner?.owner_name || "",
+      phone: primaryPhone,
+      email: lead.email || primaryOwner?.email || "",
+    };
+  }, [lead, primaryOwner?.owner_name, primaryOwner?.email, primaryPhone]);
+
+  const stageMeta = useMemo(() => getLeadDealStageMeta(lead), [lead]);
+
+  const updateDealStageMutation = useMutation({
+    mutationFn: ({ stage, manual }) =>
+      base44.entities.Lead.update(leadId, {
+        deal_stage: stage,
+        deal_stage_manual: manual,
+        deal_stage_updated_date: new Date().toISOString(),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lead", leadId] });
+      queryClient.invalidateQueries({ queryKey: ["leads"] });
+      toast.success("Deal stage updated.");
+    },
+    onError: () => {
+      toast.error("Stage override could not be saved for this record. Using automatic stage suggestion.");
+    },
+  });
+
+  const handleStageOverride = (nextStage) => {
+    const suggestedStage = stageMeta.suggestedStage;
+    updateDealStageMutation.mutate({
+      stage: nextStage,
+      manual: nextStage !== suggestedStage,
+    });
+  };
+
+  const handleUseSuggestedStage = () => {
+    updateDealStageMutation.mutate({
+      stage: stageMeta.suggestedStage,
+      manual: false,
+    });
+  };
+
   const saveLeadFormMutation = useMutation({
     mutationFn: async (data) => {
       const { enrichmentData, ...leadData } = data;
@@ -168,6 +216,12 @@ export default function LeadDetail() {
               confidence_level: "Medium",
             });
           }
+        } else if (ownerPhones[0]) {
+          await base44.entities.Phone.update(ownerPhones[0].id, {
+            phone_number: "",
+            confidence_level: ownerPhones[0].confidence_level || "Medium",
+            do_not_contact: ownerPhones[0].do_not_contact || false,
+          });
         }
       }
 
@@ -195,7 +249,11 @@ export default function LeadDetail() {
       queryClient.invalidateQueries({ queryKey: ["owners", leadId] });
       queryClient.invalidateQueries({ queryKey: ["phones"] });
       queryClient.invalidateQueries({ queryKey: ["propertyData", leadId] });
+      toast.success("Lead updated. Next step: log the next follow-up action before leaving this lead.");
       setShowEdit(false);
+    },
+    onError: (error) => {
+      toast.error(error?.message || "Failed to update lead. Please try again.");
     },
   });
 
@@ -475,6 +533,15 @@ export default function LeadDetail() {
           )}
         </div>
 
+        <div className="mb-4">
+          <DealStageRail
+            lead={lead}
+            onStageOverride={handleStageOverride}
+            onUseSuggestedStage={handleUseSuggestedStage}
+            isUpdatingStage={updateDealStageMutation.isPending}
+          />
+        </div>
+
         {/* Action Suggestion */}
         {!["Closed", "Dead", "Under Contract"].includes(lead.status) && (
           <div className="mb-4">
@@ -524,7 +591,7 @@ export default function LeadDetail() {
           <TabsList className={`w-full bg-white border border-slate-200 p-1 rounded-xl mb-4 ${lead.status === "Under Contract" ? "grid grid-cols-9" : "grid grid-cols-8"}`}>
             <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <MessageSquare className="w-4 h-4 mr-1" />
-              Chat
+              Contact
             </TabsTrigger>
             <TabsTrigger value="email" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Mail className="w-4 h-4 mr-1" />
@@ -536,15 +603,15 @@ export default function LeadDetail() {
             </TabsTrigger>
             <TabsTrigger value="tasks" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calendar className="w-4 h-4 mr-1" />
-              Tasks
+              Follow-up
             </TabsTrigger>
             <TabsTrigger value="docs" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <FileText className="w-4 h-4 mr-1" />
-              Docs
+              Documents
             </TabsTrigger>
             <TabsTrigger value="offer" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Calculator className="w-4 h-4 mr-1" />
-              Offer
+              Analyze & Offer
             </TabsTrigger>
             <TabsTrigger value="expenses" className="rounded-lg text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <DollarSign className="w-4 h-4 mr-1" />
@@ -731,12 +798,7 @@ export default function LeadDetail() {
           </SheetHeader>
           <div className="mt-4">
             <LeadForm
-              lead={{
-                ...lead,
-                owner: lead.owner || primaryOwner?.owner_name || "",
-                phone: primaryPhone,
-                email: lead.email || primaryOwner?.email || "",
-              }}
+              lead={leadFormData}
               onSave={(data) => saveLeadFormMutation.mutate(data)}
               onCancel={() => setShowEdit(false)}
               isLoading={saveLeadFormMutation.isPending}
