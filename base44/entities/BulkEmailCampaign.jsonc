@@ -1,0 +1,69 @@
+{
+  "name": "BulkEmailCampaign",
+  "type": "object",
+  "properties": {
+    "campaign_name": {
+      "type": "string",
+      "description": "Name of the bulk email campaign"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "Related EmailTemplate ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Scheduled",
+        "Sending",
+        "Completed",
+        "Paused"
+      ],
+      "default": "Draft",
+      "description": "Campaign status"
+    },
+    "recipient_filter": {
+      "type": "string",
+      "description": "JSON string of filter criteria (status, lead_source, etc.)"
+    },
+    "total_recipients": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of recipients"
+    },
+    "sent_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of emails sent"
+    },
+    "open_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of unique opens"
+    },
+    "click_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of unique clicks"
+    },
+    "scheduled_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the campaign is scheduled to send"
+    },
+    "started_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the campaign actually started"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the campaign completed"
+    }
+  },
+  "required": [
+    "campaign_name",
+    "template_id"
+  ]
+}

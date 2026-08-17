@@ -1,0 +1,61 @@
+{
+  "name": "EmailLog",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Related Campaign ID"
+    },
+    "sequence_number": {
+      "type": "number",
+      "description": "Email sequence number in campaign"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Email subject line"
+    },
+    "body": {
+      "type": "string",
+      "description": "Email body content"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the email was sent"
+    },
+    "opened": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the email was opened"
+    },
+    "opened_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the email was opened"
+    },
+    "clicked": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether any links were clicked"
+    },
+    "clicked_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When a link was clicked"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email address of recipient"
+    }
+  },
+  "required": [
+    "lead_id",
+    "subject",
+    "body",
+    "recipient_email"
+  ]
+}

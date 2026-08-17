@@ -1,0 +1,45 @@
+{
+  "name": "InvestmentCriteria",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the investment criteria set"
+    },
+    "target_roi_percentage": {
+      "type": "number",
+      "description": "Target return on investment percentage (e.g., 20)"
+    },
+    "repair_cost_percentage": {
+      "type": "number",
+      "description": "Estimated repair costs as percentage of ARV (e.g., 15)"
+    },
+    "holding_cost_months": {
+      "type": "number",
+      "description": "Expected months to hold property"
+    },
+    "assignment_fee_target": {
+      "type": "number",
+      "description": "Target assignment fee in dollars"
+    },
+    "closing_cost_percentage": {
+      "type": "number",
+      "description": "Closing costs as percentage of purchase price (e.g., 2)"
+    },
+    "max_offer_discount": {
+      "type": "number",
+      "description": "Maximum discount off ARV for MAO calculation (e.g., 30)"
+    },
+    "is_default": {
+      "type": "boolean",
+      "default": false,
+      "description": "Use this criteria by default"
+    }
+  },
+  "required": [
+    "name",
+    "target_roi_percentage",
+    "repair_cost_percentage",
+    "max_offer_discount"
+  ]
+}

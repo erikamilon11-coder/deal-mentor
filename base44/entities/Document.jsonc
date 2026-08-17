@@ -1,0 +1,49 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "document_name": {
+      "type": "string",
+      "description": "Name of the document"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "Contract",
+        "Title Deed",
+        "Inspection Report",
+        "Appraisal",
+        "Survey",
+        "Photo",
+        "Other"
+      ],
+      "description": "Category of document"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the uploaded file"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "File size in bytes"
+    },
+    "upload_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the document was uploaded"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the document"
+    }
+  },
+  "required": [
+    "lead_id",
+    "document_name",
+    "file_url"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "SMSTemplate",
+  "type": "object",
+  "properties": {
+    "template_name": {
+      "type": "string",
+      "description": "Name of the template"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "New Lead Intro",
+        "Follow-up Request",
+        "Meeting Confirmation",
+        "Offer Discussion",
+        "Contract Sent",
+        "Closing Update",
+        "General"
+      ],
+      "description": "Template category"
+    },
+    "message_text": {
+      "type": "string",
+      "description": "Template message content (supports {property_address}, {owner_name} placeholders)"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as favorite for quick access"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Track how often template is used"
+    }
+  },
+  "required": [
+    "template_name",
+    "category",
+    "message_text"
+  ]
+}

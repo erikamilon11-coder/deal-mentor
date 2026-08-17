@@ -1,0 +1,123 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "property_address": {
+      "type": "string",
+      "description": "Street address of the property"
+    },
+    "city": {
+      "type": "string",
+      "description": "City where the property is located"
+    },
+    "state": {
+      "type": "string",
+      "description": "State where the property is located"
+    },
+    "zip_code": {
+      "type": "string",
+      "description": "ZIP code for the property"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Primary owner name for quick access in the lead workflow"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Primary phone number for the lead"
+    },
+    "email": {
+      "type": "string",
+      "description": "Primary email address for the lead"
+    },
+    "message": {
+      "type": "string",
+      "description": "Initial outreach message or lead summary"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Property latitude coordinate"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Property longitude coordinate"
+    },
+    "lead_source": {
+      "type": "string",
+      "enum": [
+        "Driving for Dollars",
+        "List",
+        "Referral",
+        "Other"
+      ]
+    },
+    "distress_tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Vacant",
+          "Overgrown",
+          "Boarded",
+          "FSBO",
+          "Inherited",
+          "Other"
+        ]
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Contacted",
+        "Responded",
+        "Talking",
+        "Offer Sent",
+        "Under Contract",
+        "Closed",
+        "Dead"
+      ],
+      "default": "New"
+    },
+    "skip_trace_status": {
+      "type": "string",
+      "enum": [
+        "Not Run",
+        "Completed",
+        "No Data Found"
+      ],
+      "default": "Not Run",
+      "description": "Status of skip trace operation"
+    },
+    "deal_score": {
+      "type": "number",
+      "description": "Optional deal quality score 1-10"
+    },
+    "last_contact_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_followup_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_activity_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "next_action_suggestion": {
+      "type": "string",
+      "description": "Suggested next step for the lead"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes for the lead"
+    }
+  },
+  "required": [
+    "property_address",
+    "city",
+    "state",
+    "zip_code"
+  ]
+}

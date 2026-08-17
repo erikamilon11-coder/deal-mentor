@@ -1,0 +1,48 @@
+{
+  "name": "EmailTemplate",
+  "type": "object",
+  "properties": {
+    "template_name": {
+      "type": "string",
+      "description": "Name of the email template"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Email subject line"
+    },
+    "html_content": {
+      "type": "string",
+      "description": "HTML email content with branding"
+    },
+    "preview_text": {
+      "type": "string",
+      "description": "Preview text shown in inbox"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "New Lead",
+        "Follow-up",
+        "Offer",
+        "Closing",
+        "General"
+      ],
+      "description": "Template category"
+    },
+    "is_favorite": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mark as favorite for quick access"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Track usage of this template"
+    }
+  },
+  "required": [
+    "template_name",
+    "subject",
+    "html_content"
+  ]
+}

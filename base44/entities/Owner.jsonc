@@ -1,0 +1,34 @@
+{
+  "name": "Owner",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "description": "Owner email address for drip campaigns"
+    },
+    "mailing_address": {
+      "type": "string"
+    },
+    "entity_type": {
+      "type": "string",
+      "enum": [
+        "Individual",
+        "LLC",
+        "Trust",
+        "Other"
+      ],
+      "default": "Individual"
+    }
+  },
+  "required": [
+    "lead_id",
+    "owner_name"
+  ]
+}

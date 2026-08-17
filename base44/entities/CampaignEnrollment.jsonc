@@ -1,0 +1,49 @@
+{
+  "name": "CampaignEnrollment",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "campaign_id": {
+      "type": "string",
+      "description": "Related CampaignSequence ID"
+    },
+    "current_step": {
+      "type": "number",
+      "default": 0,
+      "description": "Current step in the sequence (0-indexed)"
+    },
+    "enrollment_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the lead was enrolled"
+    },
+    "next_send_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the next message should be sent"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Paused",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Active",
+      "description": "Enrollment status"
+    },
+    "last_sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the last message was sent"
+    }
+  },
+  "required": [
+    "lead_id",
+    "campaign_id"
+  ]
+}

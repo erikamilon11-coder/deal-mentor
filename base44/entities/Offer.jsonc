@@ -1,0 +1,43 @@
+{
+  "name": "Offer",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "arv": {
+      "type": "number",
+      "description": "After Repair Value"
+    },
+    "estimated_repairs": {
+      "type": "number"
+    },
+    "maximum_allowable_offer": {
+      "type": "number"
+    },
+    "offer_price": {
+      "type": "number"
+    },
+    "assignment_fee_target": {
+      "type": "number"
+    },
+    "offer_sent_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Accepted",
+        "Rejected"
+      ],
+      "default": "Pending"
+    }
+  },
+  "required": [
+    "lead_id",
+    "arv"
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Contract",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "purchase_price": {
+      "type": "number"
+    },
+    "closing_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Sent",
+        "Signed"
+      ],
+      "default": "Draft"
+    },
+    "document_link": {
+      "type": "string"
+    },
+    "docusign_envelope_id": {
+      "type": "string",
+      "description": "DocuSign envelope ID for tracking"
+    },
+    "docusign_status": {
+      "type": "string",
+      "description": "DocuSign signing status"
+    },
+    "signer_email": {
+      "type": "string",
+      "description": "Email of the person who needs to sign"
+    },
+    "signer_name": {
+      "type": "string",
+      "description": "Name of the person who needs to sign"
+    },
+    "sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the contract was sent for signature"
+    },
+    "signed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the contract was signed"
+    }
+  },
+  "required": [
+    "lead_id"
+  ]
+}

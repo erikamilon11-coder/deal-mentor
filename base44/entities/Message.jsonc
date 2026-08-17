@@ -1,0 +1,37 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "direction": {
+      "type": "string",
+      "enum": [
+        "Inbound",
+        "Outbound"
+      ]
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "SMS",
+        "Call",
+        "Email"
+      ]
+    },
+    "message_text": {
+      "type": "string"
+    },
+    "message_timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "lead_id",
+    "direction",
+    "channel"
+  ]
+}

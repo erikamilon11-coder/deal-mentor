@@ -1,0 +1,47 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "task_type": {
+      "type": "string",
+      "enum": [
+        "Follow-up Text",
+        "Call",
+        "Appointment"
+      ]
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Done",
+        "Snoozed"
+      ],
+      "default": "Open"
+    },
+    "auto_generated": {
+      "type": "boolean",
+      "default": false
+    },
+    "description": {
+      "type": "string"
+    },
+    "calendar_event_id": {
+      "type": "string",
+      "description": "Google Calendar event ID for synced tasks"
+    }
+  },
+  "required": [
+    "lead_id",
+    "task_type",
+    "due_date"
+  ]
+}

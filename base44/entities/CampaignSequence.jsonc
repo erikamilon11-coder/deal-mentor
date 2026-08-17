@@ -1,0 +1,49 @@
+{
+  "name": "CampaignSequence",
+  "type": "object",
+  "properties": {
+    "campaign_name": {
+      "type": "string",
+      "description": "Name of the drip campaign"
+    },
+    "trigger_type": {
+      "type": "string",
+      "enum": [
+        "status_change",
+        "days_since_contact",
+        "days_since_created"
+      ],
+      "description": "What triggers this campaign"
+    },
+    "trigger_status": {
+      "type": "string",
+      "description": "Lead status that triggers the campaign (if trigger_type is status_change)"
+    },
+    "trigger_days": {
+      "type": "number",
+      "description": "Number of days that triggers the campaign (if trigger_type is time-based)"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "Email",
+        "SMS"
+      ],
+      "description": "Communication channel for this campaign"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this campaign is active"
+    },
+    "sequence_steps": {
+      "type": "string",
+      "description": "JSON array of sequence steps with delay, subject, and message"
+    }
+  },
+  "required": [
+    "campaign_name",
+    "trigger_type",
+    "channel"
+  ]
+}

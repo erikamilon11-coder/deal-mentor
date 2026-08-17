@@ -1,0 +1,46 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "expense_type": {
+      "type": "string",
+      "enum": [
+        "Marketing",
+        "Inspection",
+        "Appraisal",
+        "Title Search",
+        "Legal",
+        "Closing",
+        "Repair Estimate",
+        "Other"
+      ],
+      "description": "Category of expense"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Expense amount in dollars"
+    },
+    "description": {
+      "type": "string",
+      "description": "Details about the expense"
+    },
+    "expense_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When the expense occurred"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    }
+  },
+  "required": [
+    "lead_id",
+    "expense_type",
+    "amount"
+  ]
+}

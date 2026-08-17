@@ -1,0 +1,38 @@
+{
+  "name": "BuyerOffer",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "contract_id": {
+      "type": "string",
+      "description": "Related Contract ID (optional)"
+    },
+    "buyer_id": {
+      "type": "string",
+      "description": "Related Buyer ID"
+    },
+    "offer_amount": {
+      "type": "number"
+    },
+    "proof_of_funds_link": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Pending",
+        "Accepted",
+        "Rejected",
+        "Countered"
+      ],
+      "default": "Pending"
+    }
+  },
+  "required": [
+    "buyer_id",
+    "offer_amount"
+  ]
+}

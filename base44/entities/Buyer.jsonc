@@ -1,0 +1,30 @@
+{
+  "name": "Buyer",
+  "type": "object",
+  "properties": {
+    "buyer_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "buying_areas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "buying_criteria": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "buyer_name"
+  ]
+}

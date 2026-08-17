@@ -1,0 +1,34 @@
+{
+  "name": "Phone",
+  "type": "object",
+  "properties": {
+    "owner_id": {
+      "type": "string",
+      "description": "Related Owner ID"
+    },
+    "phone_number": {
+      "type": "string"
+    },
+    "confidence_level": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "default": "Medium"
+    },
+    "do_not_contact": {
+      "type": "boolean",
+      "default": false
+    },
+    "last_verified_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "owner_id",
+    "phone_number"
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "name": "PropertyData",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "Related Lead ID"
+    },
+    "estimated_value": {
+      "type": "number",
+      "description": "Estimated market value"
+    },
+    "tax_assessed_value": {
+      "type": "number",
+      "description": "Current tax assessment value"
+    },
+    "last_sale_price": {
+      "type": "number",
+      "description": "Last recorded sale price"
+    },
+    "last_sale_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last sale"
+    },
+    "year_built": {
+      "type": "number",
+      "description": "Year property was built"
+    },
+    "square_footage": {
+      "type": "number",
+      "description": "Total square footage"
+    },
+    "bedrooms": {
+      "type": "number",
+      "description": "Number of bedrooms"
+    },
+    "bathrooms": {
+      "type": "number",
+      "description": "Number of bathrooms"
+    },
+    "lot_size": {
+      "type": "number",
+      "description": "Lot size in square feet"
+    },
+    "property_type": {
+      "type": "string",
+      "description": "Type of property (Single Family, Condo, etc.)"
+    },
+    "comps_data": {
+      "type": "string",
+      "description": "JSON string of comparable properties"
+    },
+    "tax_history": {
+      "type": "string",
+      "description": "JSON string of tax assessment history"
+    },
+    "data_source": {
+      "type": "string",
+      "description": "Source of the data"
+    },
+    "fetched_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the data was fetched"
+    }
+  },
+  "required": [
+    "lead_id"
+  ]
+}
